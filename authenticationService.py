@@ -80,12 +80,23 @@ class TransactionUser(BaseModel):
 
 agentList = []
 
+def clearHash(pos):
+    now = datetime.now()
+    if pos<len(agentList):
+        if now-timedelta(hours=1) > agentList[pos].date:
+            agentList.pop(pos)
+            clearHash(pos)
+        else:
+            clearHash(pos+1)
+        
 def checkHash(input:HashAgent):
     return_value = False
-    now = datetime.now()
-    for i in range(0,len(agentList)):
-        if now-timedelta(hours=1) > agentList[i].date:
-            agentList.pop(i)
+    # now = datetime.now()
+    # [x for x in agentList if x.date>(now-timedelta(hours=1))]
+    # for i in range(0,len(agentList)):
+    #     if now-timedelta(hours=1) > agentList[i].date:
+    #         agentList.pop(i)
+    clearHash(0)
     for i in range(0,len(agentList)):
         if agentList[i].hash==input.hash and agentList[i].userAgent==input.userAgent:
             if agentList[i].user.id!=input.user.id:
