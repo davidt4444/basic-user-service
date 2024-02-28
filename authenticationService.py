@@ -22,7 +22,10 @@ from mysql.connector import connect, Error
 
 app = FastAPI()
 
-cnf_filepath='example.cnf'
+cnf_filepath="../aws-resources/localhost-mac.cnf"
+# cnf_filepath="../aws-resources/localhost.cnf"
+# cnf_filepath="../aws-resources/thenameofyourbrand.cnf"
+# cnf_filepath='example.cnf'
 
 # You are going to want to change this to the address of your front end
 origins = [
@@ -307,11 +310,11 @@ def logout(user:SecureUser):
 # POST create a user 
 @app.post("/user")
 def postUser(transactionUser: TransactionUser,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, user=transactionUser.secureUser.user, date=datetime.now()))==True:
-        if "ADMIN" in transactionUser.secureUser.user.roles.upper():
-            insertIntoUserTable(transactionUser.user)
-            return {"response":"User Saved"}
-    return {"response":"Could not authenticate"}
+    # if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+    #     if "ADMIN" in transactionUser.secureUser.user.roles.upper():
+    insertIntoUserTable(transactionUser.user)
+    return {"response":"User Saved"}
+    # return {"response":"Could not authenticate"}
 
 # POST read all users 
 @app.post("/users")

@@ -1,0 +1,14 @@
+<link rel="stylesheet" href="styles.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script src="./BasicUserService.js"></script>
+<div id="store" class="store"></div>
+<div id="result_title" class="result_title"></div>
+<div id="result" class="result"></div>
+<div id="resultXml" class="resultXml"></div>
+<div id="userListView" class="userListView"></div>
+<script>
+    let bus = {};
+    bus = new BasicUserService([], 'http://127.0.0.1:8000', false);
+    bus.loginUser();
+
+</script>

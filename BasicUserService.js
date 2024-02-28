@@ -14,14 +14,6 @@ class BasicUserService{
 
     }
 
-    showHideXml(){
-        var x = document.getElementById("resultXml");
-        if (x.style.display === "none") {
-          x.style.display = "block";
-        } else {
-          x.style.display = "none";
-        }
-    }
     changeUser(userNum){
         if(userNum<this.data.length && userNum>=0)
         {
@@ -128,7 +120,54 @@ class BasicUserService{
             warning.setAttribute("id", "warning");
             warning.appendChild(document.createTextNode("The passwords do not match. Please fix this and resubmit."))
             document.getElementById("result").prepend(warning);
-        }else{
+        }
+        else if(
+            document.getElementById("h")==null
+            || document.getElementById("h").value==""
+            || document.getElementById("u")==null
+            || document.getElementById("u").value==""
+        ){
+            var payload={
+                "user":{
+                    id: enteredId,
+                    uniqueId: enteredUniqueId,
+                    username: enteredUsername,
+                    email: enteredEmail,
+                    roles: "",
+                    password: enteredPassword1
+                },
+                secureUser:{
+                    "hash": "",
+                    "user": {
+                        id: 0,
+                        uniqueId: "",
+                        username: "",
+                        email: "",
+                        roles: "",
+                        password: ""
+                    }
+                }
+            }
+            $.ajax({
+                url: this.server+'/user/',
+                type: 'POST',
+                data: JSON.stringify(payload),
+                // processData: false,
+                contentType: 'application/merge-patch+json',
+                success: function(result) {
+                    
+                    var input = document.createElement("button");
+                    input.setAttribute("id", "startLogin");
+                    input.setAttribute("class", "userButton");
+                    input.setAttribute("onclick", "bus.loginUser()");
+                    input.appendChild(document.createTextNode("User Created. Give it a try!"));
+                    document.getElementById("result").appendChild(input);
+                    document.getElementById("startLogin").click();
+                }
+            });
+
+        }
+        else{
             var payload={
                 "user":{
                     id: enteredId,
@@ -401,6 +440,13 @@ class BasicUserService{
         ")");
         
         holder.appendChild(input);
+        
+        input = document.createElement("Button");
+        input.setAttribute("id", "userCreateButton");
+        input.setAttribute("class", "userListViewEntry");
+        input.setAttribute("onclick", "bus.createUser()");
+        input.appendChild(document.createTextNode("Create New User"));
+        holder.appendChild(input);
         container.appendChild(holder);
 
         document.getElementById("result").appendChild(container);
@@ -450,7 +496,7 @@ class BasicUserService{
         holder = document.createElement("li");
         holder.setAttribute("class", "userListViewEntry");
         holder.setAttribute("id", "userListViewEntry");
-        holder.appendChild(document.createTextNode("Password #1"));
+        holder.appendChild(document.createTextNode("Password"));
         input = document.createElement("input");
         input.setAttribute("id", "password");
         input.setAttribute("type", "password");
@@ -600,15 +646,17 @@ class BasicUserService{
                 editItem.appendChild(editLink);
                 submenu.appendChild(editItem);
 
-                var deleteItem = document.createElement("li");
-                deleteItem.setAttribute("class", "userModify")
-                deleteItem.setAttribute("id", "userModify")
-                var deleteLink=document.createElement("a");
-                deleteLink.setAttribute("onclick", "bus.deleteUser("+i+")");
-                deleteLink.appendChild(document.createTextNode("Delete"));
-                deleteItem.appendChild(deleteLink);
-                submenu.appendChild(deleteItem);
-                
+                //Self preservation
+                if(this.data.length!=1){
+                    var deleteItem = document.createElement("li");
+                    deleteItem.setAttribute("class", "userModify")
+                    deleteItem.setAttribute("id", "userModify")
+                    var deleteLink=document.createElement("a");
+                    deleteLink.setAttribute("onclick", "bus.deleteUser("+i+")");
+                    deleteLink.appendChild(document.createTextNode("Delete"));
+                    deleteItem.appendChild(deleteLink);
+                    submenu.appendChild(deleteItem);
+                }
                 item.appendChild(submenu);
             }
             collection.appendChild(item);

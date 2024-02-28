@@ -76,9 +76,11 @@ After you have done all of the stuff above, you can run the following command to
 <p>
 python3 -m uvicorn authenticationService:app --reload
 </p>
-<p>-----------Work in progress-----------------</p>
 <p>
-For the front end, BasicUserService.js is the code for the front end and the view.html file is an example of how to build out the view on your website. You will obviously want to put a skin on it and move the contents of that file inside the element that you will use to hold the blog. You will also need to move over the style elements to the local styles.css file for your website.
+For the front end, BasicUserService.js is the code for the front end and the view.html file is an example of how to build out the view on your website. Right now it displays the user, the users details and a list of users that it has access to. This is all from the default behavior in the initialize function. You can change this by having it call a different function when you instantiate the object with admin set to false. Basically, the hash and the logged in user are set in the hidden inputs for passing in them to get stuff that you need to be authenticated to see though.
+</p>
+<p>
+You will obviously want to put a skin on it and move the contents of that file inside the element that you will use to hold the site. You will also need to move over the style elements to the local styles.css file for your website.
 </p>
 <p>
 For the back end, I use the adminView.html on my local laptop with the mysql instance port forwarded into the laptop with basic-user-service running on my laptop.
@@ -90,11 +92,12 @@ For the production outward facing service on an ec2, you will want to modify the
 Also, for production, there are some things that should be changed in add_middleware in the python code. 
 </p>
 <p>
-Since this uses bearer tokens, you will not need cookies, so set allow_credentials=false. You are going to want to change allow methods to allow_methods=["POST"] for authentication and token issuance.  
+Since this uses bearer tokens, you will not need cookies, so set allow_credentials=false. You are going to want to change allow methods to allow_methods=["POST", "PATCH"] for authentication, token issuance and user updates.  
 </p>
 <p>
 You also should be able to comment out allow_headers for default behavior. Accept, Accept-Language, Content-Language and Content-Type should still be allowed in that case.
 </p>
+<p>-----------Work in progress-----------------</p>
 <p>
 production.py is an example of what is running in production. The example command below allows you to set a different port than 8000. Just change the $PORT variable to the desired port.
 </p>
