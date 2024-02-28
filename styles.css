@@ -1,0 +1,49 @@
+.content{
+    width:60%;
+}
+.mainContent{
+    width:60%;
+}
+a{
+    text-decoration: none;
+    color: black;
+}
+.warning{
+    color:red;
+}
+.userListViewEntry{
+    list-style: none;
+    
+}
+.userDate{
+    padding-bottom:10px;
+    
+}
+.userShowHideButton
+{
+    width:200px;
+    margin-top:30px;
+    padding:10px;
+}
+.userButton
+{
+    width:200px;
+    margin-top:30px;
+    padding:10px;
+}
+.userListViewEntry textarea{
+    width:80%;
+    height:300px;
+}
+.userListViewEntry input{
+    width:50em;
+}
+.userModify{
+    list-style: none;
+    display:inline-block;
+    width: 50px;
+    height:1.5em;
+    border-right-style: dotted;
+    border-right-width:1px;
+    margin:5px;
+}
