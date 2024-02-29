@@ -3,6 +3,8 @@ class BasicUserService{
     currentUser=0;
     data = [];
     server = "";
+    user = null;
+    skip=false;
     constructor(data, server, admin=false)
     {
         this.admin=admin;
@@ -14,11 +16,38 @@ class BasicUserService{
 
     }
 
+    dropdown()
+    {
+        document.getElementById("resultTitle").classList.toggle("active");
+        var content = document.getElementById("userManagement");
+        if (content.style.display === "block") {
+            content.style.display = "none";
+        } else {
+            content.style.display = "block";
+        }
+    // var coll = document.getElementsByClassName("resultTitle");
+    // var i;
+    
+    // for (i = 0; i < coll.length; i++) {
+    //     coll[i].addEventListener("click", function() {
+    //     this.classList.toggle("active");
+    //     var content = this.nextElementSibling;
+    //     if (content.style.display === "block") {
+    //         content.style.display = "none";
+    //     } else {
+    //         content.style.display = "block";
+    //     }
+    //     });
+    // }
+        
+    }
     changeUser(userNum){
         if(userNum<this.data.length && userNum>=0)
         {
             this.currentUser=userNum;
+            this.skip=true;
             this.initialize(this.data[this.currentUser].uniqueId);
+            this.skip=false;
         }
         //this will change thee path to the user without reload
         //To keep it in the same page
@@ -215,9 +244,10 @@ class BasicUserService{
     }
     loadData()
     {
+        this.user = JSON.parse(document.getElementById("u").value);
         var payload = {
             "hash": document.getElementById("h").value,
-            "user": JSON.parse(document.getElementById("u").value)
+            "user": this.user
         }
         $.ajax({
             url:this.server+'/users', 
@@ -313,6 +343,7 @@ class BasicUserService{
     }
 
     signout(){
+        this.user = null;
         var payload = {
             "hash": document.getElementById("h").value,
             "user": JSON.parse(document.getElementById("u").value)
@@ -333,12 +364,12 @@ class BasicUserService{
 
     createUser()
     {
-        var header = document.createElement("h2");
+        var header = document.createElement("b");
         header.appendChild(
                 document.createTextNode("Editing - A new user")
                 );
-        document.getElementById("result_title").innerHTML="";    
-        document.getElementById("result_title").appendChild(header);    
+        document.getElementById("resultTitle").innerHTML="";    
+        document.getElementById("resultTitle").appendChild(header);    
         
                     
         document.getElementById("result").innerHTML="";
@@ -400,12 +431,12 @@ class BasicUserService{
     }
     loginUser()
     {
-        var header = document.createElement("h2");
+        var header = document.createElement("b");
         header.appendChild(
                 document.createTextNode("Login")
                 );
-        document.getElementById("result_title").innerHTML="";    
-        document.getElementById("result_title").appendChild(header);    
+        document.getElementById("resultTitle").innerHTML="";    
+        document.getElementById("resultTitle").appendChild(header);    
         
                     
         document.getElementById("result").innerHTML="";
@@ -453,20 +484,30 @@ class BasicUserService{
     }
     editUser(userNum)
     {
-        var header = document.createElement("h2");
+        var header = document.createElement("b");
         header.appendChild(
                 document.createTextNode("Editing - "+this.data[userNum].uniqueId)
                 );
-        document.getElementById("result_title").innerHTML="";    
-        document.getElementById("result_title").appendChild(header);    
+        document.getElementById("resultTitle").innerHTML="";    
+        document.getElementById("resultTitle").appendChild(header);    
         
                     
         document.getElementById("result").innerHTML="";
+        
+        if(this.user!=null && this.user.id==this.data[userNum].id)
+        {
+            var warning = document.createElement("div");
+            warning.setAttribute("class", "warning");
+            warning.setAttribute("id", "warning");
+            warning.appendChild(document.createTextNode("Any edits made to your user will not show up until your next login."))
+            document.getElementById("result").prepend(warning);
+        }
+
         var container = document.createElement("ul");
         var holder = document.createElement("li");
         holder.setAttribute("class", "userListViewEntry");
         holder.setAttribute("id", "userListViewEntry");
-        holder.appendChild(document.createTextNode("Title"));
+        holder.appendChild(document.createTextNode("Username"));
         var input = document.createElement("input");
         input.setAttribute("id", "username");
         input.setAttribute("value", this.data[userNum].username);
@@ -535,13 +576,13 @@ class BasicUserService{
             // window.history.pushState("", window.title, path);
             var ahref = document.createElement("a");
             ahref.setAttribute("href",path);
-            var header = document.createElement("h2");
+            var header = document.createElement("b");
             header.appendChild(
                     document.createTextNode(this.data[this.currentUser].username)
                     );
             ahref.appendChild(header);
-            document.getElementById("result_title").innerHTML="";    
-            document.getElementById("result_title").appendChild(ahref);    
+            document.getElementById("resultTitle").innerHTML="";    
+            document.getElementById("resultTitle").appendChild(ahref);    
             
             document.getElementById("result").innerHTML="";
             document.getElementById("resultXml").innerHTML="";
@@ -607,18 +648,21 @@ class BasicUserService{
         var collection = document.createElement("ul");
         var item ={};
         document.getElementById("userListView").innerHTML="";
-        if(this.admin && document.getElementById("u")!=null)
+        if(document.getElementById("u")!=null)
         {
             // document.getElementById("result").innerHtml="";
             var input = document.createElement("button");
             input.setAttribute("id", "userSignout");
-            input.setAttribute("class", "userButton");
+            input.setAttribute("class", "userSignoutButton");
             input.setAttribute("onclick", "bus.signout()");
             input.appendChild(document.createTextNode("Sign out"));
             document.getElementById("userListView").appendChild(input);
-            input = document.createElement("button");
+        }
+        if(this.admin && document.getElementById("u")!=null)
+        {
+            var input = document.createElement("button");
             input.setAttribute("id", "userCreateButton");
-            input.setAttribute("class", "userButton");
+            //input.setAttribute("class", "userCreateButton");
             input.setAttribute("onclick", "bus.createUser()");
             input.appendChild(document.createTextNode("Create New User"));
             document.getElementById("userListView").appendChild(input);
@@ -633,7 +677,7 @@ class BasicUserService{
             link.appendChild(document.createTextNode("Username: "+this.data[i].username));
             item.appendChild(link);
 
-            if(this.admin)
+            if(this.admin || (this.user!=null && this.user.id==this.data[i].id))
             {
                 var submenu = document.createElement("ul");
                 
@@ -664,6 +708,8 @@ class BasicUserService{
         document.getElementById("userListView").appendChild(collection);
         this.loadUser();
         // JSON result in `data` variable
-
+        if(!this.skip){
+            this.dropdown()
+        }
     }
 }
