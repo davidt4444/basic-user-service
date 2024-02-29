@@ -90,6 +90,46 @@ class BasicUserService{
         // window.location.href=path;
     }
 
+    clearCache(userNum){
+        var payload = {
+            "hash": document.getElementById("h").value,
+            "user": JSON.parse(document.getElementById("u").value)
+        }
+        if(userNum<this.data.length && userNum>=0)
+        {
+            var delId = this.data[userNum].id;
+            var guid = this.data[userNum].uniqueId;
+            $.ajax({
+                url: this.server+'/user/clearCache/'+guid,
+                type: 'POST',
+                data: JSON.stringify(payload),
+                contentType: 'application/merge-patch+json',
+                    success: function(result) {
+                    if(result.response == "Could not authenticate"){
+                        var input = document.createElement("button");
+                        input.setAttribute("id", "authFailed");
+                        input.setAttribute("class", "userButton");
+                        input.setAttribute("onclick", "bus.signout()");
+                        input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
+                        document.getElementById("user_result").appendChild(input);
+                        document.getElementById("authFailed").click();
+                    }else{
+                        var input = document.createElement("button");
+                        input.setAttribute("id", "loadData");
+                        input.setAttribute("class", "userButton");
+                        input.setAttribute("onclick", "bus.loadData()");
+                        input.appendChild(document.createTextNode("Loading Data..."));
+                        document.getElementById("user_result").appendChild(input);
+                        document.getElementById("loadData").click();
+                    }
+
+                    // var path = window.location.href.replace(window.location.search, "")+"?result="+guid+" cleared out of the hash";
+                    // window.location.href=path;
+                }
+            });
+        }
+
+    }
     deleteUser(userNum){
         var payload = {
             "hash": document.getElementById("h").value,
@@ -278,13 +318,10 @@ class BasicUserService{
     {
         if(this.getCookie("hash")&&this.getCookie("user")){
             console.log("hello1");
-            this.cookiePresent();
         }
         else{
-            console.log("hello2");
             this.setCookie("hash", document.getElementById("h").value, 1);
             this.setCookie("user", document.getElementById("u").value);
-            console.log(document.cookie);
         }
         this.user = JSON.parse(document.getElementById("u").value);
         var payload = {
@@ -744,6 +781,15 @@ class BasicUserService{
                     deleteLink.appendChild(document.createTextNode("Delete"));
                     deleteItem.appendChild(deleteLink);
                     submenu.appendChild(deleteItem);
+
+                    var clearCacheItem = document.createElement("li");
+                    clearCacheItem.setAttribute("class", "userModify")
+                    clearCacheItem.setAttribute("id", "userModify")
+                    var clearCacheLink=document.createElement("a");
+                    clearCacheLink.setAttribute("onclick", "bus.clearCache("+i+")");
+                    clearCacheLink.appendChild(document.createTextNode("Clear Hash"));
+                    clearCacheItem.appendChild(clearCacheLink);
+                    submenu.appendChild(clearCacheItem);
                 }
                 item.appendChild(submenu);
             }

@@ -369,6 +369,16 @@ def deleteUserById(id: int,secureUser:SecureUser,user_agent: Annotated[Union[str
             return {"response":value}
     return {"response":"Could not authenticate"}
 
+# clear user hash by unique id
+@app.post("/user/clearCache/{uniqueId}")
+def clearUserHashByUniqueId(uniqueId: str,secureUser:SecureUser,user_agent: Annotated[Union[str, None], Header()] = None,host: Annotated[Union[str, None], Header()] = None):
+    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=host, user=secureUser.user, date=datetime.now()))==True:
+        if "ADMIN" in secureUser.user.roles.upper():
+            clearHash(0, uniqueId)
+            value = "Hash for user {val} has been cleared".format(val=uniqueId)
+            return {"response":value}
+    return {"response":"Could not authenticate"}
+
 
 
 def main():
