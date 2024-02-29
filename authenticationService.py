@@ -12,7 +12,7 @@ from typing import Union
 from typing import Union
 from typing_extensions import Annotated
 
-from fastapi import FastAPI, Form, Response, Header, Cookie
+from fastapi import FastAPI, Form, Request, Response, Header, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
@@ -308,12 +308,12 @@ def deleteFromUserTableById(id: int):
 
 # POST authenticate a user 
 @app.post("/auth/signin")
-def authenticateUser(loginInput: Login,user_agent: Annotated[Union[str, None], Header()] = None,host: Annotated[Union[str, None], Header()] = None):
+def authenticateUser(loginInput: Login, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
     result = selectFromUserTableByLogin(loginInput)
     for r in result:
         user = r
         userHash = hashlib.md5(((user.username.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20)))).encode('utf-8')).hexdigest()
-        agentList.append(HashAgent(hash=userHash, userAgent=user_agent, host=host, date=datetime.now(), user=user))
+        agentList.append(HashAgent(hash=userHash, userAgent=user_agent, host=request.client.host, date=datetime.now(), user=user))
         return SecureUser(hash=userHash, user=user)
         # return selectAllFromUserTable()
 
@@ -329,8 +329,8 @@ def logout(user:SecureUser):
 
 # POST create a user 
 @app.post("/user")
-def postUser(transactionUser: TransactionUser,user_agent: Annotated[Union[str, None], Header()] = None,host: Annotated[Union[str, None], Header()] = None):
-    # if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=host, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+def postUser(transactionUser: TransactionUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
+    # if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, user=transactionUser.secureUser.user, date=datetime.now()))==True:
     #     if "ADMIN" in transactionUser.secureUser.user.roles.upper():
     insertIntoUserTable(transactionUser.user)
     return {"response":"User Saved"}
@@ -338,8 +338,8 @@ def postUser(transactionUser: TransactionUser,user_agent: Annotated[Union[str, N
 
 # POST read all users 
 @app.post("/users")
-def getUsers(secureUser:SecureUser,user_agent: Annotated[Union[str, None], Header()] = None,host: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=host, user=secureUser.user, date=datetime.now()))==True:
+def getUsers(secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
+    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, user=secureUser.user, date=datetime.now()))==True:
         if "ADMIN" in secureUser.user.roles.upper():
             result = selectAllFromUserTable()
             return result
@@ -349,8 +349,8 @@ def getUsers(secureUser:SecureUser,user_agent: Annotated[Union[str, None], Heade
 
 # PATCH update a user 
 @app.patch("/user")
-def patchUser(transactionUser: TransactionUser,user_agent: Annotated[Union[str, None], Header()] = None,host: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=host, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+def patchUser(transactionUser: TransactionUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
+    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, user=transactionUser.secureUser.user, date=datetime.now()))==True:
         if "ADMIN" in transactionUser.secureUser.user.roles.upper() or transactionUser.user.id==transactionUser.secureUser.user.id:
             if transactionUser.user.id==transactionUser.secureUser.user.id:
                 # You cannot update your own roles
@@ -361,8 +361,8 @@ def patchUser(transactionUser: TransactionUser,user_agent: Annotated[Union[str, 
 
 # DELETE delete a user by id
 @app.post("/user/delete/{id}")
-def deleteUserById(id: int,secureUser:SecureUser,user_agent: Annotated[Union[str, None], Header()] = None,host: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=host, user=secureUser.user, date=datetime.now()))==True:
+def deleteUserById(id: int,secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
+    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, user=secureUser.user, date=datetime.now()))==True:
         if "ADMIN" in secureUser.user.roles.upper():
             row = deleteFromUserTableById(id)
             value = "{rownum} User deleted".format(rownum=row)
@@ -371,8 +371,8 @@ def deleteUserById(id: int,secureUser:SecureUser,user_agent: Annotated[Union[str
 
 # clear user hash by unique id
 @app.post("/user/clearCache/{uniqueId}")
-def clearUserHashByUniqueId(uniqueId: str,secureUser:SecureUser,user_agent: Annotated[Union[str, None], Header()] = None,host: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=host, user=secureUser.user, date=datetime.now()))==True:
+def clearUserHashByUniqueId(uniqueId: str,secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
+    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, user=secureUser.user, date=datetime.now()))==True:
         if "ADMIN" in secureUser.user.roles.upper():
             clearHash(0, uniqueId)
             value = "Hash for user {val} has been cleared".format(val=uniqueId)
