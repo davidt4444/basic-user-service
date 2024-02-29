@@ -277,11 +277,14 @@ class BasicUserService{
     loadData()
     {
         if(this.getCookie("hash")&&this.getCookie("user")){
+            console.log("hello1");
             this.cookiePresent();
         }
         else{
+            console.log("hello2");
             this.setCookie("hash", document.getElementById("h").value, 1);
-            this.setCookie("user", JSON.parse(document.getElementById("u").value));
+            this.setCookie("user", document.getElementById("u").value);
+            console.log(document.cookie);
         }
         this.user = JSON.parse(document.getElementById("u").value);
         var payload = {

@@ -31,6 +31,8 @@ cnf_filepath="../aws-resources/localhost-mac.cnf"
 origins = [
     "http://localhost",
     "https://localhost",
+    "http://localhost:8080",
+    "https://localhost:8080",
     "null",
 ]
 
