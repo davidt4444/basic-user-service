@@ -12,7 +12,6 @@ class BasicUserService{
         this.currentUser=0;
         this.data = data;
         this.server = server;
-        document.getElementById("resultXml").style.display="none";
         if(this.getCookie("hash")&&this.getCookie("user")){
             this.loadData();
         }
@@ -26,8 +25,8 @@ class BasicUserService{
     //Utility functions
     dropdown()
     {
-        document.getElementById("resultTitle").classList.toggle("active");
-        var content = document.getElementById("userManagement");
+        document.getElementById("user_resultUser").classList.toggle("active");
+        var content = document.getElementById("user_userManagement");
         if (content.style.display === "block") {
             content.style.display = "none";
         } else {
@@ -62,16 +61,16 @@ class BasicUserService{
         input.setAttribute("type", "hidden");
         input.setAttribute("id", "h");
         input.setAttribute("value", this.getCookie("hash"));
-        document.getElementById("store").appendChild(input);
+        document.getElementById("user_store").appendChild(input);
         input = document.createElement("input");
         input.setAttribute("type", "hidden");
         input.setAttribute("id", "u");
         input.setAttribute("value", this.getCookie("user"));
-        document.getElementById("store").appendChild(input);
+        document.getElementById("user_store").appendChild(input);
         input = document.createElement("div");
         input.setAttribute("class", "dataDiv");
         input.setAttribute("id", "dataDiv");
-        document.getElementById("store").appendChild(input);
+        document.getElementById("user_store").appendChild(input);
     }
     //user functions
     changeUser(userNum){
@@ -112,7 +111,7 @@ class BasicUserService{
                         input.setAttribute("class", "userButton");
                         input.setAttribute("onclick", "bus.signout()");
                         input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                        document.getElementById("result").appendChild(input);
+                        document.getElementById("user_result").appendChild(input);
                         document.getElementById("authFailed").click();
                     }else{
                         var input = document.createElement("button");
@@ -120,7 +119,7 @@ class BasicUserService{
                         input.setAttribute("class", "userButton");
                         input.setAttribute("onclick", "bus.loadData()");
                         input.appendChild(document.createTextNode("Loading Data..."));
-                        document.getElementById("result").appendChild(input);
+                        document.getElementById("user_result").appendChild(input);
                         document.getElementById("loadData").click();
                     }
 
@@ -160,7 +159,7 @@ class BasicUserService{
                     input.setAttribute("class", "userButton");
                     input.setAttribute("onclick", "bus.signout()");
                     input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                    document.getElementById("result").appendChild(input);
+                    document.getElementById("user_result").appendChild(input);
                     document.getElementById("authFailed").click();
                 }else{
                     var input = document.createElement("button");
@@ -168,7 +167,7 @@ class BasicUserService{
                     input.setAttribute("class", "userButton");
                     input.setAttribute("onclick", "bus.loadData()");
                     input.appendChild(document.createTextNode("Loading Data..."));
-                    document.getElementById("result").appendChild(input);
+                    document.getElementById("user_result").appendChild(input);
                     document.getElementById("loadData").click();
                 }
         }
@@ -181,7 +180,7 @@ class BasicUserService{
             warning.setAttribute("class", "warning");
             warning.setAttribute("id", "warning");
             warning.appendChild(document.createTextNode("The passwords do not match. Please fix this and resubmit."))
-            document.getElementById("result").prepend(warning);
+            document.getElementById("user_result").prepend(warning);
         }
         else if(
             document.getElementById("h")==null
@@ -223,7 +222,7 @@ class BasicUserService{
                     input.setAttribute("class", "userButton");
                     input.setAttribute("onclick", "bus.loginUser()");
                     input.appendChild(document.createTextNode("User Created. Give it a try!"));
-                    document.getElementById("result").appendChild(input);
+                    document.getElementById("user_result").appendChild(input);
                     document.getElementById("startLogin").click();
                 }
             });
@@ -258,7 +257,7 @@ class BasicUserService{
                         input.setAttribute("class", "userButton");
                         input.setAttribute("onclick", "bus.signout()");
                         input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                        document.getElementById("result").appendChild(input);
+                        document.getElementById("user_result").appendChild(input);
                         document.getElementById("authFailed").click();
                     }else{
                         var input = document.createElement("button");
@@ -266,7 +265,7 @@ class BasicUserService{
                         input.setAttribute("class", "userButton");
                         input.setAttribute("onclick", "bus.loadData()");
                         input.appendChild(document.createTextNode("Loading Data..."));
-                        document.getElementById("result").appendChild(input);
+                        document.getElementById("user_result").appendChild(input);
                         document.getElementById("loadData").click();
                     }
                     // var path = window.location.href.replace(window.location.search, "")+"?result=created";
@@ -281,8 +280,8 @@ class BasicUserService{
             this.cookiePresent();
         }
         else{
-            this.setCookie("hash", result.hash, 1);
-            this.setCookie("user", JSON.stringify(result.user), 1);
+            this.setCookie("hash", document.getElementById("h").value, 1);
+            this.setCookie("user", JSON.parse(document.getElementById("u").value));
         }
         this.user = JSON.parse(document.getElementById("u").value);
         var payload = {
@@ -295,14 +294,14 @@ class BasicUserService{
             data: JSON.stringify(payload),
             contentType: 'application/merge-patch+json',
             success:function(result) {
-                document.getElementById("result").innerHtml="";
+                document.getElementById("user_result").innerHtml="";
                 if(result.response == "Could not authenticate"){
                     var input = document.createElement("button");
                     input.setAttribute("id", "authFailed");
                     input.setAttribute("class", "userButton");
                     input.setAttribute("onclick", "bus.signout()");
                     input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                    document.getElementById("result").appendChild(input);
+                    document.getElementById("user_result").appendChild(input);
                     document.getElementById("authFailed").click();
                 }
     
@@ -311,7 +310,7 @@ class BasicUserService{
                 input.setAttribute("class", "userButton");
                 input.setAttribute("onclick", "bus.initialize()");
                 input.appendChild(document.createTextNode("Initialize Data..."));
-                document.getElementById("result").appendChild(input);
+                document.getElementById("user_result").appendChild(input);
                 
                 document.getElementById("dataDiv").innerHTML="";
                 input = document.createElement("input");
@@ -344,37 +343,37 @@ class BasicUserService{
                     warning.setAttribute("class", "warning");
                     warning.setAttribute("id", "warning");
                     warning.appendChild(document.createTextNode("The username or password do not match our records."))
-                    document.getElementById("result").prepend(warning);
+                    document.getElementById("user_result").prepend(warning);
                 }else
                 {
                     var good = document.createElement("div");
                     good.setAttribute("class", "good");
                     good.setAttribute("id", "good");
                     good.appendChild(document.createTextNode("Success!"))
-                    document.getElementById("result").innerHTML=""
-                    document.getElementById("result").append(good);
+                    document.getElementById("user_result").innerHTML=""
+                    document.getElementById("user_result").append(good);
 
                     var input = document.createElement("button");
                     input.setAttribute("id", "loadData");
                     input.setAttribute("class", "userButton");
                     input.setAttribute("onclick", "bus.loadData()");
                     input.appendChild(document.createTextNode("Loading Data..."));
-                    document.getElementById("result").appendChild(input);
+                    document.getElementById("user_result").appendChild(input);
 
                     input = document.createElement("input");
                     input.setAttribute("type", "hidden");
                     input.setAttribute("id", "h");
                     input.setAttribute("value", result.hash);
-                    document.getElementById("store").appendChild(input);
+                    document.getElementById("user_store").appendChild(input);
                     input = document.createElement("input");
                     input.setAttribute("type", "hidden");
                     input.setAttribute("id", "u");
                     input.setAttribute("value", JSON.stringify(result.user));
-                    document.getElementById("store").appendChild(input);
+                    document.getElementById("user_store").appendChild(input);
                     input = document.createElement("div");
                     input.setAttribute("class", "dataDiv");
                     input.setAttribute("id", "dataDiv");
-                    document.getElementById("store").appendChild(input);
+                    document.getElementById("user_store").appendChild(input);
                     
                     document.getElementById("loadData").click()
     
@@ -396,7 +395,7 @@ class BasicUserService{
             // processData: false,
             contentType: 'application/merge-patch+json',
             success: function(result) {
-                document.getElementById("store").innerHTML="";
+                document.getElementById("user_store").innerHTML="";
                 document.cookie = "hash=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                 document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                 var path = window.location.href.replace(window.location.search, "")+"?result=Logged in";
@@ -411,11 +410,11 @@ class BasicUserService{
         header.appendChild(
                 document.createTextNode("Editing - A new user")
                 );
-        document.getElementById("resultTitle").innerHTML="";    
-        document.getElementById("resultTitle").appendChild(header);    
+        document.getElementById("user_resultUser").innerHTML="";    
+        document.getElementById("user_resultUser").appendChild(header);    
         
                     
-        document.getElementById("result").innerHTML="";
+        document.getElementById("user_result").innerHTML="";
         var container = document.createElement("ul");
         var holder = document.createElement("li");
         holder.setAttribute("class", "userListViewEntry");
@@ -470,7 +469,7 @@ class BasicUserService{
         holder.appendChild(input);
         container.appendChild(holder);
 
-        document.getElementById("result").appendChild(container);
+        document.getElementById("user_result").appendChild(container);
     }
     loginUser()
     {
@@ -478,11 +477,11 @@ class BasicUserService{
         header.appendChild(
                 document.createTextNode("Login")
                 );
-        document.getElementById("resultTitle").innerHTML="";    
-        document.getElementById("resultTitle").appendChild(header);    
+        document.getElementById("user_resultUser").innerHTML="";    
+        document.getElementById("user_resultUser").appendChild(header);    
         
                     
-        document.getElementById("result").innerHTML="";
+        document.getElementById("user_result").innerHTML="";
         var container = document.createElement("ul");
         var holder = document.createElement("li");
         holder.setAttribute("class", "userListViewEntry");
@@ -523,7 +522,7 @@ class BasicUserService{
         holder.appendChild(input);
         container.appendChild(holder);
 
-        document.getElementById("result").appendChild(container);
+        document.getElementById("user_result").appendChild(container);
     }
     editUser(userNum)
     {
@@ -531,11 +530,11 @@ class BasicUserService{
         header.appendChild(
                 document.createTextNode("Editing - "+this.data[userNum].uniqueId)
                 );
-        document.getElementById("resultTitle").innerHTML="";    
-        document.getElementById("resultTitle").appendChild(header);    
+        document.getElementById("user_resultUser").innerHTML="";    
+        document.getElementById("user_resultUser").appendChild(header);    
         
                     
-        document.getElementById("result").innerHTML="";
+        document.getElementById("user_result").innerHTML="";
         
         if(this.user!=null && this.user.id==this.data[userNum].id)
         {
@@ -543,7 +542,7 @@ class BasicUserService{
             warning.setAttribute("class", "warning");
             warning.setAttribute("id", "warning");
             warning.appendChild(document.createTextNode("Any edits made to your user will not show up until your next login."))
-            document.getElementById("result").prepend(warning);
+            document.getElementById("user_result").prepend(warning);
         }
 
         var container = document.createElement("ul");
@@ -606,7 +605,7 @@ class BasicUserService{
         holder.appendChild(input);
         container.appendChild(holder);
 
-        document.getElementById("result").appendChild(container);
+        document.getElementById("user_result").appendChild(container);
     }
 
     loadUser()
@@ -624,29 +623,28 @@ class BasicUserService{
                     document.createTextNode(this.data[this.currentUser].username)
                     );
             ahref.appendChild(header);
-            document.getElementById("resultTitle").innerHTML="";    
-            document.getElementById("resultTitle").appendChild(ahref);    
+            document.getElementById("user_resultUser").innerHTML="";    
+            document.getElementById("user_resultUser").appendChild(ahref);    
             
-            document.getElementById("result").innerHTML="";
-            document.getElementById("resultXml").innerHTML="";
+            document.getElementById("user_result").innerHTML="";
 
             var holder = document.createElement("div");
             holder.setAttribute("class", "email");
             holder.setAttribute("id", "email");
             holder.appendChild(document.createTextNode("Email: "+this.data[this.currentUser].email));
-            document.getElementById("result").appendChild(holder);
+            document.getElementById("user_result").appendChild(holder);
             
             var holder = document.createElement("div");
             holder.setAttribute("class", "roles");
             holder.setAttribute("id", "roles");
             holder.appendChild(document.createTextNode("Roles: "+this.data[this.currentUser].roles));
-            document.getElementById("result").appendChild(holder);
+            document.getElementById("user_result").appendChild(holder);
             
             holder = document.createElement("div");
             holder.setAttribute("class", "password");
             holder.setAttribute("id", "password");
             holder.appendChild(document.createTextNode("Password: ********************"));
-            document.getElementById("result").appendChild(holder);
+            document.getElementById("user_result").appendChild(holder);
             
         }
     }
@@ -690,16 +688,16 @@ class BasicUserService{
         }
         var collection = document.createElement("ul");
         var item ={};
-        document.getElementById("userListView").innerHTML="";
+        document.getElementById("user_userListView").innerHTML="";
         if(document.getElementById("u")!=null)
         {
-            // document.getElementById("result").innerHtml="";
+            // document.getElementById("user_result").innerHtml="";
             var input = document.createElement("button");
             input.setAttribute("id", "userSignout");
             input.setAttribute("class", "userSignoutButton");
             input.setAttribute("onclick", "bus.signout()");
             input.appendChild(document.createTextNode("Sign out"));
-            document.getElementById("userListView").appendChild(input);
+            document.getElementById("user_userListView").appendChild(input);
         }
         if(this.admin && document.getElementById("u")!=null)
         {
@@ -708,7 +706,7 @@ class BasicUserService{
             //input.setAttribute("class", "userCreateButton");
             input.setAttribute("onclick", "bus.createUser()");
             input.appendChild(document.createTextNode("Create New User"));
-            document.getElementById("userListView").appendChild(input);
+            document.getElementById("user_userListView").appendChild(input);
         }
         for(i=0;i<this.data.length;i++)
         {
@@ -748,7 +746,7 @@ class BasicUserService{
             }
             collection.appendChild(item);
         }
-        document.getElementById("userListView").appendChild(collection);
+        document.getElementById("user_userListView").appendChild(collection);
         this.loadUser();
         // JSON result in `data` variable
         if(!this.skip){

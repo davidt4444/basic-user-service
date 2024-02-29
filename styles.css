@@ -8,7 +8,7 @@ a{
     text-decoration: none;
     color: black;
 }
-.resultTitle{
+.user_resultUser{
     background-color: #eee;
     color: #444;
     cursor: pointer;
@@ -19,10 +19,10 @@ a{
     outline: none;
     font-size: 15px;
 }
-.active, .resultTitle:hover{
+.active, .user_resultTitle:hover{
     background-color: #ccc;
 }
-.userManagement{
+.user_userManagement{
     padding: 0 18px;
     display: none;
     overflow: hidden;
