@@ -34,6 +34,7 @@ update User set email="david@davidthigpen.com"
 update User set password=md5("test")
     where id=1
 ;
+delete from User where id=2;
 
 select id, uniqueId, username, email, roles, password from User;
 select id, uniqueId, username, email, roles, password from User where username="test" and password=md5("test");

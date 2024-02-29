@@ -7,15 +7,23 @@ class BasicUserService{
     skip=false;
     constructor(data, server, admin=false)
     {
+    
         this.admin=admin;
         this.currentUser=0;
         this.data = data;
         this.server = server;
         document.getElementById("resultXml").style.display="none";
-        this.initialize();
+        if(this.getCookie("hash")&&this.getCookie("user")){
+            this.loadData();
+        }
+        else
+        {
+            this.loginUser();
+            this.dropdown();
+        }
 
     }
-
+    //Utility functions
     dropdown()
     {
         document.getElementById("resultTitle").classList.toggle("active");
@@ -25,22 +33,47 @@ class BasicUserService{
         } else {
             content.style.display = "block";
         }
-    // var coll = document.getElementsByClassName("resultTitle");
-    // var i;
-    
-    // for (i = 0; i < coll.length; i++) {
-    //     coll[i].addEventListener("click", function() {
-    //     this.classList.toggle("active");
-    //     var content = this.nextElementSibling;
-    //     if (content.style.display === "block") {
-    //         content.style.display = "none";
-    //     } else {
-    //         content.style.display = "block";
-    //     }
-    //     });
-    // }
         
     }
+    setCookie(cname, cvalue, exdays) {
+        const d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        let expires = "expires="+d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+      
+    getCookie(cname) {
+        let name = cname + "=";
+        let ca = document.cookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+    }
+    cookiePresent()
+    {
+        var input = document.createElement("input");
+        input.setAttribute("type", "hidden");
+        input.setAttribute("id", "h");
+        input.setAttribute("value", this.getCookie("hash"));
+        document.getElementById("store").appendChild(input);
+        input = document.createElement("input");
+        input.setAttribute("type", "hidden");
+        input.setAttribute("id", "u");
+        input.setAttribute("value", this.getCookie("user"));
+        document.getElementById("store").appendChild(input);
+        input = document.createElement("div");
+        input.setAttribute("class", "dataDiv");
+        input.setAttribute("id", "dataDiv");
+        document.getElementById("store").appendChild(input);
+    }
+    //user functions
     changeUser(userNum){
         if(userNum<this.data.length && userNum>=0)
         {
@@ -244,6 +277,13 @@ class BasicUserService{
     }
     loadData()
     {
+        if(this.getCookie("hash")&&this.getCookie("user")){
+            this.cookiePresent();
+        }
+        else{
+            this.setCookie("hash", result.hash, 1);
+            this.setCookie("user", JSON.stringify(result.user), 1);
+        }
         this.user = JSON.parse(document.getElementById("u").value);
         var payload = {
             "hash": document.getElementById("h").value,
@@ -335,6 +375,7 @@ class BasicUserService{
                     input.setAttribute("class", "dataDiv");
                     input.setAttribute("id", "dataDiv");
                     document.getElementById("store").appendChild(input);
+                    
                     document.getElementById("loadData").click()
     
                 }
@@ -356,6 +397,8 @@ class BasicUserService{
             contentType: 'application/merge-patch+json',
             success: function(result) {
                 document.getElementById("store").innerHTML="";
+                document.cookie = "hash=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                 var path = window.location.href.replace(window.location.search, "")+"?result=Logged in";
                 window.location.href=path;
             }
