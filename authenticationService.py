@@ -40,7 +40,7 @@ origins = [
 # As such, for production, there are some things that should be changed
 # Since there isn't an auth setup in place, you will not need cookies
 # allow_credentials=false
-# You are going to want to change allow methods to allow_methods=["GET"],
+# You are going to want to change allow methods to allow_methods=["POST","PUT"],
 # Although, you should be able to comment it out for this default behavior
 # You also should be able to comment out allow_headers for default behavior
 # Accept, Accept-Language, Content-Language and Content-Type should
