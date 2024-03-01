@@ -167,6 +167,7 @@ class BasicUserService{
             || document.getElementById("u")==null
             || document.getElementById("u").value==""
         ){
+            document.getElementById("user_privacy").innerHTML=""
             var payload={
                 "user":{
                     id: enteredId,
@@ -199,6 +200,7 @@ class BasicUserService{
 
         }
         else{
+            document.getElementById("user_privacy").innerHTML=""
             var payload={
                 "user":{
                     id: enteredId,
@@ -246,7 +248,7 @@ class BasicUserService{
             self.signout();
         }else{
             if(result.response!=null && result.response.hash!=null && result.response.user!=null){
-                this.skip=false;
+                self.skip=false;
                 var input = document.createElement("input");
                 input.setAttribute("type", "hidden");
                 input.setAttribute("id", "h");
@@ -294,7 +296,10 @@ class BasicUserService{
     {
         document.getElementById("user_userListView").innerHTML="";
         document.getElementById("user_result").innerHTML="";
-        document.getElementById("dataDiv").innerHTML="";
+        if(document.getElementById("dataDiv")!=null)
+        {
+            document.getElementById("dataDiv").innerHTML="";
+        }
         document.getElementById("user_store").innerHTML="";
         document.cookie = "hash=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -318,6 +323,7 @@ class BasicUserService{
 
     createUser()
     {
+
         var header = document.createElement("b");
         header.appendChild(
                 document.createTextNode("Editing - A new user")
@@ -327,6 +333,11 @@ class BasicUserService{
         
                     
         document.getElementById("user_result").innerHTML="";
+        
+        var privacy = document.createElement("div");
+        privacy.innerHTML="<iframe src=\"./privacy.html\" width=\"640\" height=\"480\"></iframe>"
+        document.getElementById("user_result").appendChild(privacy);
+        
         var container = document.createElement("ul");
         var holder = document.createElement("li");
         holder.setAttribute("class", "userListViewEntry");
