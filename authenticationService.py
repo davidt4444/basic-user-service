@@ -65,10 +65,19 @@ class Login(BaseModel):
     username:str
     password:str
 
+# The request.client.host is the ip address of the client computer 
+# The request.client.port is a randomly assigned port between 
+# 49152 and 65535 as a part of the dynamic, private or ephemeral ports
+# Each port represents an instance of the request by the browser on 
+# the computer. It will change over a series of requests.
+# in the case of this app, the auth gores to request all users 
+# while the socket for auth is still open, so the port will change 
+# for that authenticated request
 class HashAgent(BaseModel):
     hash:str
     userAgent:str
     host:str
+    port:int
     date:datetime
     user:User
 
@@ -107,7 +116,10 @@ def checkHash(input:HashAgent):
     #         agentList.pop(i)
     clearHash(0)
     for i in range(0,len(agentList)):
-        if agentList[i].hash==input.hash and agentList[i].userAgent==input.userAgent and agentList[i].host==input.host:
+        # I removed the restriction on port to allow the session
+        # to cross tabs and account for the port changing in 
+        # the same tab in some cases
+        if agentList[i].hash==input.hash and agentList[i].userAgent==input.userAgent and agentList[i].host==input.host:# and agentList[i].port==input.port:
             if agentList[i].user.id!=input.user.id:
                 continue
             if agentList[i].user.uniqueId!=input.user.uniqueId:
@@ -313,8 +325,17 @@ def authenticateUser(loginInput: Login, request: Request,user_agent: Annotated[U
     for r in result:
         user = r
         userHash = hashlib.md5(((user.username.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20)))).encode('utf-8')).hexdigest()
-        agentList.append(HashAgent(hash=userHash, userAgent=user_agent, host=request.client.host, date=datetime.now(), user=user))
-        return SecureUser(hash=userHash, user=user)
+        agentList.append(HashAgent(hash=userHash, userAgent=user_agent, host=request.client.host, port=request.client.port, date=datetime.now(), user=user))
+        secureUser = SecureUser(hash=userHash, user=user)
+        if "ADMIN" in secureUser.user.roles.upper():
+            users = selectAllFromUserTable()
+        else:
+            users = [secureUser.user]
+        return {
+            "response":secureUser,
+            "users":users
+        }
+        # return SecureUser(hash=userHash, user=user)
         # return selectAllFromUserTable()
 
     return {"response":"Could not authenticate"}
@@ -330,53 +351,85 @@ def logout(user:SecureUser):
 # POST create a user 
 @app.post("/user")
 def postUser(transactionUser: TransactionUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    # if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+    # if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now()))==True:
     #     if "ADMIN" in transactionUser.secureUser.user.roles.upper():
     insertIntoUserTable(transactionUser.user)
-    return {"response":"User Saved"}
+    if "ADMIN" in transactionUser.secureUser.user.roles.upper():
+        users = selectAllFromUserTable()
+    else:
+        users = [transactionUser.secureUser.user]
+    return {
+        "response":"User Saved",
+        "users":users
+        }
     # return {"response":"Could not authenticate"}
 
 # POST read all users 
 @app.post("/users")
 def getUsers(secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, user=secureUser.user, date=datetime.now()))==True:
+    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=secureUser.user, date=datetime.now()))==True:
         if "ADMIN" in secureUser.user.roles.upper():
-            result = selectAllFromUserTable()
-            return result
+            users = selectAllFromUserTable()
         else:
-            return [secureUser.user]
+            users [secureUser.user]
+        return {
+        "response":"Users Loaded",
+        "users":users
+        }
+
     return {"response":"Could not authenticate"}
 
 # PATCH update a user 
 @app.patch("/user")
 def patchUser(transactionUser: TransactionUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now()))==True:
         if "ADMIN" in transactionUser.secureUser.user.roles.upper() or transactionUser.user.id==transactionUser.secureUser.user.id:
             if transactionUser.user.id==transactionUser.secureUser.user.id:
                 # You cannot update your own roles
                 transactionUser.user.roles=transactionUser.secureUser.user.roles
             updateUserInTable(transactionUser.user)
-            return {"response":"User Updated"}
+            if "ADMIN" in transactionUser.secureUser.user.roles.upper():
+                users = selectAllFromUserTable()
+            else:
+                users = [transactionUser.secureUser.user]
+            return {
+                "response":"User Updated",
+                "users":users
+                }
     return {"response":"Could not authenticate"}
 
 # DELETE delete a user by id
 @app.post("/user/delete/{id}")
 def deleteUserById(id: int,secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, user=secureUser.user, date=datetime.now()))==True:
+    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=secureUser.user, date=datetime.now()))==True:
         if "ADMIN" in secureUser.user.roles.upper():
             row = deleteFromUserTableById(id)
             value = "{rownum} User deleted".format(rownum=row)
-            return {"response":value}
+            if "ADMIN" in secureUser.user.roles.upper():
+                users = selectAllFromUserTable()
+            else:
+                users = [secureUser.user]
+            return {
+                "response":value,
+                "users":users
+                }
     return {"response":"Could not authenticate"}
 
 # clear user hash by unique id
 @app.post("/user/clearCache/{uniqueId}")
 def clearUserHashByUniqueId(uniqueId: str,secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, user=secureUser.user, date=datetime.now()))==True:
+    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=secureUser.user, date=datetime.now()))==True:
         if "ADMIN" in secureUser.user.roles.upper():
             clearHash(0, uniqueId)
             value = "Hash for user {val} has been cleared".format(val=uniqueId)
-            return {"response":value}
+            if "ADMIN" in secureUser.user.roles.upper():
+                users = selectAllFromUserTable()
+            else:
+                users = [secureUser.user]
+            return {
+                "response":value,
+                "users":users
+                }
     return {"response":"Could not authenticate"}
 
 

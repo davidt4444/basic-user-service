@@ -5,14 +5,16 @@ class BasicUserService{
     server = "";
     user = null;
     skip=false;
+    static self = null;
     constructor(data, server, admin=false)
     {
-    
+        self=this;
         this.admin=admin;
         this.currentUser=0;
         this.data = data;
         this.server = server;
         if(this.getCookie("hash")&&this.getCookie("user")){
+            this.cookiePresent();
             this.loadData();
         }
         else
@@ -104,28 +106,7 @@ class BasicUserService{
                 type: 'POST',
                 data: JSON.stringify(payload),
                 contentType: 'application/merge-patch+json',
-                    success: function(result) {
-                    if(result.response == "Could not authenticate"){
-                        var input = document.createElement("button");
-                        input.setAttribute("id", "authFailed");
-                        input.setAttribute("class", "userButton");
-                        input.setAttribute("onclick", "bus.signout()");
-                        input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                        document.getElementById("user_result").appendChild(input);
-                        document.getElementById("authFailed").click();
-                    }else{
-                        var input = document.createElement("button");
-                        input.setAttribute("id", "loadData");
-                        input.setAttribute("class", "userButton");
-                        input.setAttribute("onclick", "bus.loadData()");
-                        input.appendChild(document.createTextNode("Loading Data..."));
-                        document.getElementById("user_result").appendChild(input);
-                        document.getElementById("loadData").click();
-                    }
-
-                    // var path = window.location.href.replace(window.location.search, "")+"?result="+guid+" cleared out of the hash";
-                    // window.location.href=path;
-                }
+                    success: this.loadData_response
             });
         }
 
@@ -144,28 +125,10 @@ class BasicUserService{
                 type: 'POST',
                 data: JSON.stringify(payload),
                 contentType: 'application/merge-patch+json',
-                    success: function(result) {
-                    if(result.response == "Could not authenticate"){
-                        var input = document.createElement("button");
-                        input.setAttribute("id", "authFailed");
-                        input.setAttribute("class", "userButton");
-                        input.setAttribute("onclick", "bus.signout()");
-                        input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                        document.getElementById("user_result").appendChild(input);
-                        document.getElementById("authFailed").click();
-                    }else{
-                        var input = document.createElement("button");
-                        input.setAttribute("id", "loadData");
-                        input.setAttribute("class", "userButton");
-                        input.setAttribute("onclick", "bus.loadData()");
-                        input.appendChild(document.createTextNode("Loading Data..."));
-                        document.getElementById("user_result").appendChild(input);
-                        document.getElementById("loadData").click();
-                    }
+                    success: this.loadData_response
 
                     // var path = window.location.href.replace(window.location.search, "")+"?result="+guid+" deleted";
                     // window.location.href=path;
-                }
             });
         }
 
@@ -191,26 +154,7 @@ class BasicUserService{
             data: JSON.stringify(payload),
             // processData: false,
             contentType: 'application/merge-patch+json',
-            success: function(result) {
-
-                if(result.response == "Could not authenticate"){
-                    var input = document.createElement("button");
-                    input.setAttribute("id", "authFailed");
-                    input.setAttribute("class", "userButton");
-                    input.setAttribute("onclick", "bus.signout()");
-                    input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                    document.getElementById("user_result").appendChild(input);
-                    document.getElementById("authFailed").click();
-                }else{
-                    var input = document.createElement("button");
-                    input.setAttribute("id", "loadData");
-                    input.setAttribute("class", "userButton");
-                    input.setAttribute("onclick", "bus.loadData()");
-                    input.appendChild(document.createTextNode("Loading Data..."));
-                    document.getElementById("user_result").appendChild(input);
-                    document.getElementById("loadData").click();
-                }
-        }
+            success: this.loadData_response
         });
     }
     insertUser(enteredId,enteredUniqueId,enteredUsername,enteredEmail,enteredPassword1,enteredPassword2){
@@ -255,16 +199,7 @@ class BasicUserService{
                 data: JSON.stringify(payload),
                 // processData: false,
                 contentType: 'application/merge-patch+json',
-                success: function(result) {
-                    
-                    var input = document.createElement("button");
-                    input.setAttribute("id", "startLogin");
-                    input.setAttribute("class", "userButton");
-                    input.setAttribute("onclick", "bus.loginUser()");
-                    input.appendChild(document.createTextNode("User Created. Give it a try!"));
-                    document.getElementById("user_result").appendChild(input);
-                    document.getElementById("startLogin").click();
-                }
+                success: this.cleanup
             });
 
         }
@@ -289,40 +224,12 @@ class BasicUserService{
                 data: JSON.stringify(payload),
                 // processData: false,
                 contentType: 'application/merge-patch+json',
-                success: function(result) {
-                    
-                    if(result.response == "Could not authenticate"){
-                        var input = document.createElement("button");
-                        input.setAttribute("id", "authFailed");
-                        input.setAttribute("class", "userButton");
-                        input.setAttribute("onclick", "bus.signout()");
-                        input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                        document.getElementById("user_result").appendChild(input);
-                        document.getElementById("authFailed").click();
-                    }else{
-                        var input = document.createElement("button");
-                        input.setAttribute("id", "loadData");
-                        input.setAttribute("class", "userButton");
-                        input.setAttribute("onclick", "bus.loadData()");
-                        input.appendChild(document.createTextNode("Loading Data..."));
-                        document.getElementById("user_result").appendChild(input);
-                        document.getElementById("loadData").click();
-                    }
-                    // var path = window.location.href.replace(window.location.search, "")+"?result=created";
-                    // window.location.href=path;
-                }
+                success: this.loadData_response
             });
         }
     }
     loadData()
     {
-        if(this.getCookie("hash")&&this.getCookie("user")){
-            console.log("hello1");
-        }
-        else{
-            this.setCookie("hash", document.getElementById("h").value, 1);
-            this.setCookie("user", document.getElementById("u").value);
-        }
         this.user = JSON.parse(document.getElementById("u").value);
         var payload = {
             "hash": document.getElementById("h").value,
@@ -333,38 +240,45 @@ class BasicUserService{
             type: 'POST',
             data: JSON.stringify(payload),
             contentType: 'application/merge-patch+json',
-            success:function(result) {
-                document.getElementById("user_result").innerHtml="";
-                if(result.response == "Could not authenticate"){
-                    var input = document.createElement("button");
-                    input.setAttribute("id", "authFailed");
-                    input.setAttribute("class", "userButton");
-                    input.setAttribute("onclick", "bus.signout()");
-                    input.appendChild(document.createTextNode("Auth Failed! Signing out..."));
-                    document.getElementById("user_result").appendChild(input);
-                    document.getElementById("authFailed").click();
-                }
-    
-                var input = document.createElement("button");
-                input.setAttribute("id", "initializeData");
-                input.setAttribute("class", "userButton");
-                input.setAttribute("onclick", "bus.initialize()");
-                input.appendChild(document.createTextNode("Initialize Data..."));
-                document.getElementById("user_result").appendChild(input);
-                
-                document.getElementById("dataDiv").innerHTML="";
-                input = document.createElement("input");
-                input.setAttribute("type", "hidden");
-                input.setAttribute("id", "d");
-                input.setAttribute("value", JSON.stringify(result));
-                document.getElementById("dataDiv").appendChild(input);
-
-                document.getElementById("initializeData").click()
-        
-            }
+            success:this.loadData_response
         });
     
     }
+    loadData_response(result)
+    {
+        if(result.response == "Could not authenticate"){
+            self.signout();
+        }else{
+            if(result.response!=null && result.response.hash!=null && result.response.user!=null){
+                var input = document.createElement("input");
+                input.setAttribute("type", "hidden");
+                input.setAttribute("id", "h");
+                input.setAttribute("value", result.response.hash);
+                document.getElementById("user_store").appendChild(input);
+                input = document.createElement("input");
+                input.setAttribute("type", "hidden");
+                input.setAttribute("id", "u");
+                input.setAttribute("value", JSON.stringify(result.response.user));
+                document.getElementById("user_store").appendChild(input);
+                input = document.createElement("div");
+                input.setAttribute("class", "dataDiv");
+                input.setAttribute("id", "dataDiv");
+                document.getElementById("user_store").appendChild(input);
+            }
+
+
+            document.getElementById("user_result").innerHTML="";
+            document.getElementById("dataDiv").innerHTML="";
+            var input = document.createElement("input");
+            input.setAttribute("type", "hidden");
+            input.setAttribute("id", "d");
+            input.setAttribute("value", JSON.stringify(result.users));
+            document.getElementById("dataDiv").appendChild(input);
+
+            self.initialize()
+        }
+    }
+
     authenticateUser(enteredUsername,enteredPassword){
         var payload={
             username: enteredUsername,
@@ -376,52 +290,19 @@ class BasicUserService{
             data: JSON.stringify(payload),
             // processData: false,
             contentType: 'application/merge-patch+json',
-            success: function(result) {
-                if(result.response=="Could not authenticate")
-                {
-                    var warning = document.createElement("div");
-                    warning.setAttribute("class", "warning");
-                    warning.setAttribute("id", "warning");
-                    warning.appendChild(document.createTextNode("The username or password do not match our records."))
-                    document.getElementById("user_result").prepend(warning);
-                }else
-                {
-                    var good = document.createElement("div");
-                    good.setAttribute("class", "good");
-                    good.setAttribute("id", "good");
-                    good.appendChild(document.createTextNode("Success!"))
-                    document.getElementById("user_result").innerHTML=""
-                    document.getElementById("user_result").append(good);
-
-                    var input = document.createElement("button");
-                    input.setAttribute("id", "loadData");
-                    input.setAttribute("class", "userButton");
-                    input.setAttribute("onclick", "bus.loadData()");
-                    input.appendChild(document.createTextNode("Loading Data..."));
-                    document.getElementById("user_result").appendChild(input);
-
-                    input = document.createElement("input");
-                    input.setAttribute("type", "hidden");
-                    input.setAttribute("id", "h");
-                    input.setAttribute("value", result.hash);
-                    document.getElementById("user_store").appendChild(input);
-                    input = document.createElement("input");
-                    input.setAttribute("type", "hidden");
-                    input.setAttribute("id", "u");
-                    input.setAttribute("value", JSON.stringify(result.user));
-                    document.getElementById("user_store").appendChild(input);
-                    input = document.createElement("div");
-                    input.setAttribute("class", "dataDiv");
-                    input.setAttribute("id", "dataDiv");
-                    document.getElementById("user_store").appendChild(input);
-                    
-                    document.getElementById("loadData").click()
-    
-                }
-            }
+            success: this.loadData_response
         });
     }
-
+    cleanup(result)
+    {
+        document.getElementById("user_userListView").innerHTML="";
+        document.getElementById("user_result").innerHTML="";
+        document.getElementById("dataDiv").innerHTML="";
+        document.getElementById("user_store").innerHTML="";
+        document.cookie = "hash=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        self.loginUser();
+    }
     signout(){
         this.user = null;
         var payload = {
@@ -434,13 +315,7 @@ class BasicUserService{
             data: JSON.stringify(payload),
             // processData: false,
             contentType: 'application/merge-patch+json',
-            success: function(result) {
-                document.getElementById("user_store").innerHTML="";
-                document.cookie = "hash=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                var path = window.location.href.replace(window.location.search, "")+"?result=Logged in";
-                window.location.href=path;
-            }
+            success: this.cleanup
         });
     }
 
@@ -704,6 +579,15 @@ class BasicUserService{
     }
     initialize(knownGuid="")
     {
+///////////////////////////////////////////
+        if(this.getCookie("hash")&&this.getCookie("user")){
+        }
+        else{
+            this.setCookie("hash", document.getElementById("h").value, 1);
+            this.setCookie("user", document.getElementById("u").value);
+        }
+        this.user = JSON.parse(document.getElementById("u").value);
+///////////////////////////////////////////
         var guid = this.getPathVariable("uniqueId");
         if(knownGuid!="")
         {
@@ -731,7 +615,7 @@ class BasicUserService{
         document.getElementById("user_userListView").innerHTML="";
         if(document.getElementById("u")!=null)
         {
-            // document.getElementById("user_result").innerHtml="";
+            // document.getElementById("user_result").innerHTML="";
             var input = document.createElement("button");
             input.setAttribute("id", "userSignout");
             input.setAttribute("class", "userSignoutButton");
