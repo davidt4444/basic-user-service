@@ -4,7 +4,7 @@ class BasicUserService{
     data = [];
     server = "";
     user = null;
-    skip=false;
+    skip=true;
     static self = null;
     constructor(data, server, admin=false)
     {
@@ -79,56 +79,51 @@ class BasicUserService{
         if(userNum<this.data.length && userNum>=0)
         {
             this.currentUser=userNum;
-            this.skip=true;
             this.initialize(this.data[this.currentUser].uniqueId);
-            this.skip=false;
         }
-        //this will change thee path to the user without reload
-        //To keep it in the same page
-        // this.loadUser();
-        //The alternative is this. It will allow the browser back button to work. 
-        
-        // var path = window.location.href.replace(window.location.search, "")+"?uniqueId="+this.data[this.currentUser].uniqueId;
-        // window.location.href=path;
     }
 
     clearCache(userNum){
         var payload = {
+            user: this.data[userNum],
+            secureUser:{
             "hash": document.getElementById("h").value,
             "user": JSON.parse(document.getElementById("u").value)
+            }
         }
         if(userNum<this.data.length && userNum>=0)
         {
             var delId = this.data[userNum].id;
             var guid = this.data[userNum].uniqueId;
             $.ajax({
-                url: this.server+'/user/clearCache/'+guid,
+                url: this.server+'/user/clearCache',
                 type: 'POST',
                 data: JSON.stringify(payload),
+                // processData: false,
                 contentType: 'application/merge-patch+json',
-                    success: this.loadData_response
+                success: this.loadData_response
             });
         }
 
     }
     deleteUser(userNum){
         var payload = {
-            "hash": document.getElementById("h").value,
-            "user": JSON.parse(document.getElementById("u").value)
+            user:this.data[userNum],
+            secureUser:{
+                "hash": document.getElementById("h").value,
+                "user": JSON.parse(document.getElementById("u").value)
+            }
         }
         if(userNum<this.data.length && userNum>=0)
         {
-            var delId = this.data[userNum].id;
-            var guid = this.data[userNum].uniqueId;
             $.ajax({
-                url: this.server+'/user/delete/'+delId,
+                url: this.server+'/user/delete',
                 type: 'POST',
                 data: JSON.stringify(payload),
+                // processData: false,
                 contentType: 'application/merge-patch+json',
-                    success: this.loadData_response
+                success: this.loadData_response
 
-                    // var path = window.location.href.replace(window.location.search, "")+"?result="+guid+" deleted";
-                    // window.location.href=path;
             });
         }
 
@@ -149,7 +144,7 @@ class BasicUserService{
             }
         }
         $.ajax({
-            url: this.server+'/user/',
+            url: this.server+'/user',
             type: 'PATCH',
             data: JSON.stringify(payload),
             // processData: false,
@@ -194,7 +189,7 @@ class BasicUserService{
                 }
             }
             $.ajax({
-                url: this.server+'/user/',
+                url: this.server+'/user',
                 type: 'POST',
                 data: JSON.stringify(payload),
                 // processData: false,
@@ -219,7 +214,7 @@ class BasicUserService{
                 }
             }
             $.ajax({
-                url: this.server+'/user/',
+                url: this.server+'/user',
                 type: 'POST',
                 data: JSON.stringify(payload),
                 // processData: false,
@@ -247,9 +242,11 @@ class BasicUserService{
     loadData_response(result)
     {
         if(result.response == "Could not authenticate"){
+            console.log(result);
             self.signout();
         }else{
             if(result.response!=null && result.response.hash!=null && result.response.user!=null){
+                this.skip=false;
                 var input = document.createElement("input");
                 input.setAttribute("type", "hidden");
                 input.setAttribute("id", "h");
@@ -275,7 +272,7 @@ class BasicUserService{
             input.setAttribute("value", JSON.stringify(result.users));
             document.getElementById("dataDiv").appendChild(input);
 
-            self.initialize()
+            self.initialize();
         }
     }
 
@@ -451,15 +448,6 @@ class BasicUserService{
                     
         document.getElementById("user_result").innerHTML="";
         
-        if(this.user!=null && this.user.id==this.data[userNum].id)
-        {
-            var warning = document.createElement("div");
-            warning.setAttribute("class", "warning");
-            warning.setAttribute("id", "warning");
-            warning.appendChild(document.createTextNode("Any edits made to your user will not show up until your next login."))
-            document.getElementById("user_result").prepend(warning);
-        }
-
         var container = document.createElement("ul");
         var holder = document.createElement("li");
         holder.setAttribute("class", "userListViewEntry");
@@ -529,8 +517,6 @@ class BasicUserService{
         if(this.data.length>0)
         {
             path += "?uniqueId="+this.data[this.currentUser].uniqueId;
-            //this will change thee path to the post without reload
-            // window.history.pushState("", window.title, path);
             var ahref = document.createElement("a");
             ahref.setAttribute("href",path);
             var header = document.createElement("b");
@@ -684,6 +670,7 @@ class BasicUserService{
         // JSON result in `data` variable
         if(!this.skip){
             this.dropdown()
+            this.skip=true;
         }
     }
 }

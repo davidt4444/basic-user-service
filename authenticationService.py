@@ -70,9 +70,6 @@ class Login(BaseModel):
 # 49152 and 65535 as a part of the dynamic, private or ephemeral ports
 # Each port represents an instance of the request by the browser on 
 # the computer. It will change over a series of requests.
-# in the case of this app, the auth gores to request all users 
-# while the socket for auth is still open, so the port will change 
-# for that authenticated request
 class HashAgent(BaseModel):
     hash:str
     userAgent:str
@@ -234,7 +231,6 @@ def selectAllFromUserTable():
         for r in result:
             value = User(id=r[0], uniqueId=r[1], username=r[2], email=r[3], roles=r[4], password=r[5])
             return_list.append(value)
-            print(r)
         
         # close the cursor and database connection
         cursor.close()
@@ -390,8 +386,8 @@ def patchUser(transactionUser: TransactionUser, request: Request,user_agent: Ann
             updateUserInTable(transactionUser.user)
             if "ADMIN" in transactionUser.secureUser.user.roles.upper():
                 users = selectAllFromUserTable()
-            else:
-                users = [transactionUser.secureUser.user]
+            else: # when transactionUser.user.id==transactionUser.secureUser.user.id
+                users = [transactionUser.user]
             return {
                 "response":"User Updated",
                 "users":users
@@ -399,33 +395,33 @@ def patchUser(transactionUser: TransactionUser, request: Request,user_agent: Ann
     return {"response":"Could not authenticate"}
 
 # DELETE delete a user by id
-@app.post("/user/delete/{id}")
-def deleteUserById(id: int,secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=secureUser.user, date=datetime.now()))==True:
-        if "ADMIN" in secureUser.user.roles.upper():
-            row = deleteFromUserTableById(id)
+@app.post("/user/delete")
+def deleteUserById(transactionUser: TransactionUser,  request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
+    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+        if "ADMIN" in transactionUser.secureUser.user.roles.upper():
+            row = deleteFromUserTableById(transactionUser.user.id)
             value = "{rownum} User deleted".format(rownum=row)
-            if "ADMIN" in secureUser.user.roles.upper():
-                users = selectAllFromUserTable()
-            else:
-                users = [secureUser.user]
+            users = selectAllFromUserTable()
             return {
                 "response":value,
                 "users":users
                 }
+        else:
+            users = [transactionUser.secureUser.user]
+
     return {"response":"Could not authenticate"}
 
 # clear user hash by unique id
-@app.post("/user/clearCache/{uniqueId}")
-def clearUserHashByUniqueId(uniqueId: str,secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=secureUser.user, date=datetime.now()))==True:
-        if "ADMIN" in secureUser.user.roles.upper():
-            clearHash(0, uniqueId)
-            value = "Hash for user {val} has been cleared".format(val=uniqueId)
-            if "ADMIN" in secureUser.user.roles.upper():
+@app.post("/user/clearCache")
+def clearUserHashByUniqueId(transactionUser: TransactionUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
+    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+        if "ADMIN" in transactionUser.secureUser.user.roles.upper():
+            clearHash(0, transactionUser.user.uniqueId)
+            value = "Hash for user {val} has been cleared".format(val=transactionUser.user.uniqueId)
+            if "ADMIN" in transactionUser.secureUser.user.roles.upper():
                 users = selectAllFromUserTable()
             else:
-                users = [secureUser.user]
+                users = [transactionUser.secureUser.user]
             return {
                 "response":value,
                 "users":users
@@ -435,9 +431,6 @@ def clearUserHashByUniqueId(uniqueId: str,secureUser:SecureUser, request: Reques
 
 
 def main():
-    print(hashlib.md5("stuff".encode('utf-8')).hexdigest())
-    print(hashlib.md5("stuff").hexdigest())
-    #test()
     return ""
 
 
