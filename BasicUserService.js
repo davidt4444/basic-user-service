@@ -200,7 +200,6 @@ class BasicUserService{
 
         }
         else{
-            document.getElementById("user_privacy").innerHTML=""
             var payload={
                 "user":{
                     id: enteredId,
@@ -244,7 +243,6 @@ class BasicUserService{
     loadData_response(result)
     {
         if(result.response == "Could not authenticate"){
-            console.log(result);
             self.signout();
         }else{
             if(result.response!=null && result.response.hash!=null && result.response.user!=null){
@@ -648,30 +646,28 @@ class BasicUserService{
                 editItem.setAttribute("id", "userModify")
                 var editLink=document.createElement("a");
                 editLink.setAttribute("onclick", "bus.editUser("+i+")");
-                editLink.appendChild(document.createTextNode("Edit"));
-                editItem.appendChild(editLink);
-                submenu.appendChild(editItem);
+                editItem.appendChild(document.createTextNode("Edit"));
+                editLink.appendChild(editItem);
+                submenu.appendChild(editLink);
 
-                //Self preservation
-                if(this.data.length!=1){
-                    var deleteItem = document.createElement("li");
-                    deleteItem.setAttribute("class", "userModify")
-                    deleteItem.setAttribute("id", "userModify")
-                    var deleteLink=document.createElement("a");
-                    deleteLink.setAttribute("onclick", "bus.deleteUser("+i+")");
-                    deleteLink.appendChild(document.createTextNode("Delete"));
-                    deleteItem.appendChild(deleteLink);
-                    submenu.appendChild(deleteItem);
+                var deleteItem = document.createElement("li");
+                deleteItem.setAttribute("class", "userModify")
+                deleteItem.setAttribute("id", "userModify")
+                var deleteLink=document.createElement("a");
+                deleteLink.setAttribute("onclick", "bus.deleteUser("+i+")");
+                deleteItem.appendChild(document.createTextNode("Delete"));
+                deleteLink.appendChild(deleteItem);
+                submenu.appendChild(deleteLink);
 
-                    var clearCacheItem = document.createElement("li");
-                    clearCacheItem.setAttribute("class", "userModify")
-                    clearCacheItem.setAttribute("id", "userModify")
-                    var clearCacheLink=document.createElement("a");
-                    clearCacheLink.setAttribute("onclick", "bus.clearCache("+i+")");
-                    clearCacheLink.appendChild(document.createTextNode("Clear Hash"));
-                    clearCacheItem.appendChild(clearCacheLink);
-                    submenu.appendChild(clearCacheItem);
-                }
+                var clearCacheItem = document.createElement("li");
+                clearCacheItem.setAttribute("class", "userModify")
+                clearCacheItem.setAttribute("id", "userModify")
+                var clearCacheLink=document.createElement("a");
+                clearCacheLink.setAttribute("onclick", "bus.clearCache("+i+")");
+                clearCacheItem.appendChild(document.createTextNode("Clear Hash"));
+                clearCacheLink.appendChild(clearCacheItem);
+                submenu.appendChild(clearCacheLink);
+
                 item.appendChild(submenu);
             }
             collection.appendChild(item);

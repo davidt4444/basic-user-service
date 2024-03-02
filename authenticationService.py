@@ -321,7 +321,8 @@ def authenticateUser(loginInput: Login, request: Request,user_agent: Annotated[U
     for r in result:
         user = r
         userHash = hashlib.md5(((user.username.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20)))).encode('utf-8')).hexdigest()
-        agentList.append(HashAgent(hash=userHash, userAgent=user_agent, host=request.client.host, port=request.client.port, date=datetime.now(), user=user))
+        logRequest = HashAgent(hash=userHash, userAgent=user_agent, host=request.client.host, port=request.client.port, date=datetime.now(), user=user)
+        agentList.append(logRequest)
         secureUser = SecureUser(hash=userHash, user=user)
         if "ADMIN" in secureUser.user.roles.upper():
             users = selectAllFromUserTable()
@@ -347,7 +348,8 @@ def logout(user:SecureUser):
 # POST create a user 
 @app.post("/user")
 def postUser(transactionUser: TransactionUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    # if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+    logRequest = HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now())
+    # if user_agent!=None and checkHash(logRequest)==True:
     #     if "ADMIN" in transactionUser.secureUser.user.roles.upper():
     insertIntoUserTable(transactionUser.user)
     if "ADMIN" in transactionUser.secureUser.user.roles.upper():
@@ -363,7 +365,8 @@ def postUser(transactionUser: TransactionUser, request: Request,user_agent: Anno
 # POST read all users 
 @app.post("/users")
 def getUsers(secureUser:SecureUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=secureUser.user, date=datetime.now()))==True:
+    logRequest = HashAgent(hash=secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=secureUser.user, date=datetime.now())
+    if user_agent!=None and checkHash(logRequest)==True:
         if "ADMIN" in secureUser.user.roles.upper():
             users = selectAllFromUserTable()
         else:
@@ -378,7 +381,8 @@ def getUsers(secureUser:SecureUser, request: Request,user_agent: Annotated[Union
 # PATCH update a user 
 @app.patch("/user")
 def patchUser(transactionUser: TransactionUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+    logRequest = HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now())
+    if user_agent!=None and checkHash(logRequest)==True:
         if "ADMIN" in transactionUser.secureUser.user.roles.upper() or transactionUser.user.id==transactionUser.secureUser.user.id:
             if transactionUser.user.id==transactionUser.secureUser.user.id:
                 # You cannot update your own roles
@@ -397,7 +401,8 @@ def patchUser(transactionUser: TransactionUser, request: Request,user_agent: Ann
 # DELETE delete a user by id
 @app.post("/user/delete")
 def deleteUserById(transactionUser: TransactionUser,  request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now()))==True:
+    logRequest = HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now())
+    if user_agent!=None and checkHash(logRequest)==True:
         if "ADMIN" in transactionUser.secureUser.user.roles.upper():
             row = deleteFromUserTableById(transactionUser.user.id)
             value = "{rownum} User deleted".format(rownum=row)
@@ -406,16 +411,16 @@ def deleteUserById(transactionUser: TransactionUser,  request: Request,user_agen
                 "response":value,
                 "users":users
                 }
-        else:
-            users = [transactionUser.secureUser.user]
-
+        elif transactionUser.user.id==transactionUser.secureUser.user.id:
+            row = deleteFromUserTableById(transactionUser.user.id)
     return {"response":"Could not authenticate"}
 
 # clear user hash by unique id
 @app.post("/user/clearCache")
 def clearUserHashByUniqueId(transactionUser: TransactionUser, request: Request,user_agent: Annotated[Union[str, None], Header()] = None):
-    if user_agent!=None and checkHash(HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now()))==True:
-        if "ADMIN" in transactionUser.secureUser.user.roles.upper():
+    logRequest = HashAgent(hash=transactionUser.secureUser.hash, userAgent=user_agent, host=request.client.host, port=request.client.port, user=transactionUser.secureUser.user, date=datetime.now())
+    if user_agent!=None and checkHash(logRequest)==True:
+        if "ADMIN" in transactionUser.secureUser.user.roles.upper() or transactionUser.user.id==transactionUser.secureUser.user.id:
             clearHash(0, transactionUser.user.uniqueId)
             value = "Hash for user {val} has been cleared".format(val=transactionUser.user.uniqueId)
             if "ADMIN" in transactionUser.secureUser.user.roles.upper():

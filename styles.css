@@ -62,7 +62,7 @@ a{
 .userModify{
     list-style: none;
     display:inline-block;
-    width: 50px;
+    width: 100px;
     height:1.5em;
     border-right-style: dotted;
     border-right-width:1px;
