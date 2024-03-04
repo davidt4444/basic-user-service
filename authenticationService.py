@@ -22,10 +22,10 @@ from mysql.connector import connect, Error
 
 app = FastAPI()
 
-cnf_filepath="../aws-resources/localhost-mac.cnf"
+# cnf_filepath="../aws-resources/localhost-mac.cnf"
 # cnf_filepath="../aws-resources/localhost.cnf"
 # cnf_filepath="../aws-resources/thenameofyourbrand.cnf"
-# cnf_filepath='example.cnf'
+cnf_filepath='example.cnf'
 
 # You are going to want to change this to the address of your front end
 origins = [
