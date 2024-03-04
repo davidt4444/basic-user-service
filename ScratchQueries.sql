@@ -42,33 +42,4 @@ select id, uniqueId, username, email, roles, password from User where username="
 SELECT MD5('testing');
 
 
-/*
-Here is an example of using a filter view to influence the post order
-*/
-
-create table PostDisplay ( 
-    id int NOT NULL AUTO_INCREMENT,
-    uniqueId CHAR(36),
-    PRIMARY KEY (id)
-);
-drop table PostDisplay;
-truncate table PostDisplay;
-insert into PostDisplay( uniqueId) values( "cc309516-cf5b-11ee-8573-f3e6a68ccc5c");
-insert into PostDisplay( uniqueId) values( "cac71146-cf5b-11ee-8573-f3e6a68ccc5c");
-insert into PostDisplay( uniqueId) values( "ccbf8938-cf5b-11ee-8573-f3e6a68ccc5c");
-SELECT * FROM PostDisplay;
-SELECT p.id, p.uniqueId, p.title, p.author, p.date, p.content FROM PostDisplay pd, Post p where pd.uniqueId=p.uniqueId;
-
-/*
-I pulled the test guids from a select query off of the main Post table
-*/
-
-SELECT id, uniqueId, title, author, date, content FROM Post;
-
-cc309516-cf5b-11ee-8573-f3e6a68ccc5c
-cac71146-cf5b-11ee-8573-f3e6a68ccc5c
-ccbf8938-cf5b-11ee-8573-f3e6a68ccc5c
-
-
-
 
