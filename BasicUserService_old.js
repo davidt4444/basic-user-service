@@ -5,23 +5,22 @@ class BasicUserService{
     server = "";
     user = null;
     skip=true;
-    static self = this;
+    static self = null;
     constructor(data, server, admin=false)
     {
         self=this;
-        self.admin=admin;
-        self.currentUser=0;
-        self.data = data;
-        self.server = server;
-        if(self.getCookie("hash")&&self.getCookie("user")){
-            self.user = JSON.parse(self.getCookie("user"));
-//            self.cookiePresent();
-            self.loadData();
+        this.admin=admin;
+        this.currentUser=0;
+        this.data = data;
+        this.server = server;
+        if(this.getCookie("hash")&&this.getCookie("user")){
+            this.cookiePresent();
+            this.loadData();
         }
         else
         {
-            self.loginUser();
-            self.dropdown();
+            this.loginUser();
+            this.dropdown();
         }
 
     }
@@ -63,12 +62,12 @@ class BasicUserService{
         var input = document.createElement("input");
         input.setAttribute("type", "hidden");
         input.setAttribute("id", "h");
-        input.setAttribute("value", self.getCookie("hash"));
+        input.setAttribute("value", this.getCookie("hash"));
         document.getElementById("user_store").appendChild(input);
         input = document.createElement("input");
         input.setAttribute("type", "hidden");
         input.setAttribute("id", "u");
-        input.setAttribute("value", self.getCookie("user"));
+        input.setAttribute("value", this.getCookie("user"));
         document.getElementById("user_store").appendChild(input);
         input = document.createElement("div");
         input.setAttribute("class", "dataDiv");
@@ -77,10 +76,10 @@ class BasicUserService{
     }
     //user functions
     changeUser(userNum){
-        if(userNum<self.data.length && userNum>=0)
+        if(userNum<this.data.length && userNum>=0)
         {
-            self.currentUser=userNum;
-            self.initialize(self.data[self.currentUser].uniqueId);
+            this.currentUser=userNum;
+            this.initialize(this.data[this.currentUser].uniqueId);
         }
     }
 
@@ -108,53 +107,50 @@ class BasicUserService{
 
     }
     deleteUser(userNum){
-        if(userNum<self.data.length && userNum>=0)
+        var payload = {
+            user:this.data[userNum],
+            secureUser:{
+                "hash": document.getElementById("h").value,
+                "user": JSON.parse(document.getElementById("u").value)
+            }
+        }
+        if(userNum<this.data.length && userNum>=0)
         {
             $.ajax({
-                url: self.server+'/User/'+self.data[userNum].id,
-                xhrFields: { withCredentials: true },
-                type: 'DELETE',
+                url: this.server+'/user/delete',
+                type: 'POST',
+                data: JSON.stringify(payload),
+                // processData: false,
                 contentType: 'application/merge-patch+json',
-                success: self.deleteUser_response
+                success: this.loadData_response
 
             });
         }
 
     }
-     deleteUser_response(result)
-     {
-         if(result.response == "Could not authenticate"){
-             self.signout();
-         }else if(result!=null){
-             self.loadData();
-         }
-     }
     updateUser(enteredId,enteredUniqueId,enteredUsername,enteredEmail,enteredRoles,enteredPassword){
         var payload={
-            id:enteredId,
-            uniqueId:enteredUniqueId,
-            username:enteredUsername,
-            email:enteredEmail,
-            password:enteredPassword,
-            roles:enteredRoles
+            "user":{
+                id: enteredId,
+                uniqueId: enteredUniqueId,
+                username: enteredUsername,
+                email: enteredEmail,
+                roles: enteredRoles,
+                password: enteredPassword
+            },
+            secureUser:{
+                "hash": document.getElementById("h").value,
+                "user": JSON.parse(document.getElementById("u").value)
+            }
         }
-        console.log(payload);
         $.ajax({
-            url: self.server+'/User',
-            xhrFields: { withCredentials: true },
+            url: this.server+'/user',
             type: 'PATCH',
             data: JSON.stringify(payload),
+            // processData: false,
             contentType: 'application/merge-patch+json',
-            success: self.updateUser_response
+            success: this.loadData_response
         });
-    }
-    updateUser_response(result)
-    {
-        if(result.response == "Could not authenticate"){
-            self.signout();
-        }else if(result!=null){
-            self.loadData();
-        }
     }
     insertUser(enteredId,enteredUniqueId,enteredUsername,enteredEmail,enteredPassword1,enteredPassword2){
         if(enteredPassword1!=enteredPassword2)
@@ -165,72 +161,119 @@ class BasicUserService{
             warning.appendChild(document.createTextNode("The passwords do not match. Please fix this and resubmit."))
             document.getElementById("user_result").prepend(warning);
         }
-        else if(self.user==null){
+        else if(
+            document.getElementById("h")==null
+            || document.getElementById("h").value==""
+            || document.getElementById("u")==null
+            || document.getElementById("u").value==""
+        ){
+            document.getElementById("user_privacy").innerHTML=""
             var payload={
-                username:enteredUsername,
-                email:enteredEmail,
-                roles:"",
-                password:enteredPassword1
+                "user":{
+                    id: enteredId,
+                    uniqueId: enteredUniqueId,
+                    username: enteredUsername,
+                    email: enteredEmail,
+                    roles: "",
+                    password: enteredPassword1
+                },
+                secureUser:{
+                    "hash": "",
+                    "user": {
+                        id: 0,
+                        uniqueId: "",
+                        username: "",
+                        email: "",
+                        roles: "",
+                        password: ""
+                    }
+                }
             }
             $.ajax({
-                url: self.server+'/auth/signup',
-                xhrFields: { withCredentials: true },
+                url: this.server+'/user',
                 type: 'POST',
                 data: JSON.stringify(payload),
                 // processData: false,
                 contentType: 'application/merge-patch+json',
-                success: self.cleanup
+                success: this.cleanup
             });
 
         }
         else{
             var payload={
-                username:enteredUsername,
-                email:enteredEmail,
-                roles:"",
-                password:enteredPassword1
+                "user":{
+                    id: enteredId,
+                    uniqueId: enteredUniqueId,
+                    username: enteredUsername,
+                    email: enteredEmail,
+                    roles: "",
+                    password: enteredPassword1
+                },
+                secureUser:{
+                    "hash": document.getElementById("h").value,
+                    "user": JSON.parse(document.getElementById("u").value)
+                }
             }
             $.ajax({
-                url: self.server+'/auth/signup',
-                xhrFields: { withCredentials: true },
+                url: this.server+'/user',
                 type: 'POST',
                 data: JSON.stringify(payload),
                 // processData: false,
                 contentType: 'application/merge-patch+json',
-                success: self.insertUser_response
+                success: this.loadData_response
             });
-        }
-    }
-    insertUser_response(result)
-    {
-        if(result.response == "Could not authenticate"){
-            self.signout();
-        }else if(result!=null){
-            self.loadData();
         }
     }
     loadData()
     {
+        this.user = JSON.parse(document.getElementById("u").value);
+        var payload = {
+            "hash": document.getElementById("h").value,
+            "user": this.user
+        }
         $.ajax({
-            url:self.server+'/User',
-            xhrFields: { withCredentials: true },
-            type: 'GET',
+            url:this.server+'/users', 
+            type: 'POST',
+            data: JSON.stringify(payload),
             contentType: 'application/merge-patch+json',
-            success:self.loadData_response
+            success:this.loadData_response
         });
     
     }
     loadData_response(result)
     {
-        if(result!=null && result.length==0)
-        {
-            self.data = [self.user];
+        if(result.response == "Could not authenticate"){
+            self.signout();
+        }else{
+            if(result.response!=null && result.response.hash!=null && result.response.user!=null){
+                self.skip=false;
+                var input = document.createElement("input");
+                input.setAttribute("type", "hidden");
+                input.setAttribute("id", "h");
+                input.setAttribute("value", result.response.hash);
+                document.getElementById("user_store").appendChild(input);
+                input = document.createElement("input");
+                input.setAttribute("type", "hidden");
+                input.setAttribute("id", "u");
+                input.setAttribute("value", JSON.stringify(result.response.user));
+                document.getElementById("user_store").appendChild(input);
+                input = document.createElement("div");
+                input.setAttribute("class", "dataDiv");
+                input.setAttribute("id", "dataDiv");
+                document.getElementById("user_store").appendChild(input);
+            }
+
+
+            document.getElementById("user_result").innerHTML="";
+            document.getElementById("dataDiv").innerHTML="";
+            var input = document.createElement("input");
+            input.setAttribute("type", "hidden");
+            input.setAttribute("id", "d");
+            input.setAttribute("value", JSON.stringify(result.users));
+            document.getElementById("dataDiv").appendChild(input);
+
+            self.initialize();
         }
-        else
-        {
-            self.data = result;
-        }
-        self.initialize();
     }
 
     authenticateUser(enteredUsername,enteredPassword){
@@ -239,28 +282,13 @@ class BasicUserService{
             password: enteredPassword
         }
         $.ajax({
-            url: self.server+'/auth/signin',
-            xhrFields: { withCredentials: true },
+            url: this.server+'/auth/signin',
             type: 'POST',
             data: JSON.stringify(payload),
+            // processData: false,
             contentType: 'application/merge-patch+json',
-            success: self.authenticateUser_response
+            success: this.loadData_response
         });
-    }
-    authenticateUser_response(result)
-    {
-        if(result.response == "Could not authenticate"){
-            self.signout();
-        }else if(result!=null){
-            self.user=result;
-            if(self.getCookie("hash")&&self.getCookie("user")){
-            }
-            else if (self.user!=null){
-                self.setCookie("hash", self.user.cookie, 1);
-                self.setCookie("user", JSON.stringify(self.user),1);
-            }
-            self.loadData();
-        }
     }
     cleanup(result)
     {
@@ -276,13 +304,18 @@ class BasicUserService{
         self.loginUser();
     }
     signout(){
-        self.user = null;
+        this.user = null;
+        var payload = {
+            "hash": document.getElementById("h").value,
+            "user": JSON.parse(document.getElementById("u").value)
+        }
         $.ajax({
-            url: self.server+'/auth/signout',
-            xhrFields: { withCredentials: true },
+            url: this.server+'/auth/signout',
             type: 'POST',
+            data: JSON.stringify(payload),
+            // processData: false,
             contentType: 'application/merge-patch+json',
-            success: self.cleanup
+            success: this.cleanup
         });
     }
 
@@ -416,7 +449,7 @@ class BasicUserService{
     {
         var header = document.createElement("b");
         header.appendChild(
-                document.createTextNode("Editing - "+self.data[userNum].uniqueId)
+                document.createTextNode("Editing - "+this.data[userNum].uniqueId)
                 );
         document.getElementById("user_resultUser").innerHTML="";    
         document.getElementById("user_resultUser").appendChild(header);    
@@ -431,7 +464,7 @@ class BasicUserService{
         holder.appendChild(document.createTextNode("Username"));
         var input = document.createElement("input");
         input.setAttribute("id", "username");
-        input.setAttribute("value", self.data[userNum].username);
+        input.setAttribute("value", this.data[userNum].username);
         holder.appendChild(input);
         container.appendChild(holder);
         
@@ -441,7 +474,7 @@ class BasicUserService{
         holder.appendChild(document.createTextNode("Email"));
         input = document.createElement("input");
         input.setAttribute("id", "email");
-        input.setAttribute("value", self.data[userNum].email);
+        input.setAttribute("value", this.data[userNum].email);
         holder.appendChild(input);
         container.appendChild(holder);
         
@@ -451,7 +484,7 @@ class BasicUserService{
         holder.appendChild(document.createTextNode("Roles"));
         input = document.createElement("input");
         input.setAttribute("id", "roles");
-        input.setAttribute("value", self.data[userNum].roles);
+        input.setAttribute("value", this.data[userNum].roles);
         holder.appendChild(input);
         container.appendChild(holder);
         
@@ -472,8 +505,8 @@ class BasicUserService{
         input = document.createElement("Button");
         input.appendChild(document.createTextNode("Submit"))
         input.setAttribute("onclick", "bus.updateUser("+
-        self.data[userNum].id+",\""+
-        self.data[userNum].uniqueId+"\","+
+        this.data[userNum].id+",\""+
+        this.data[userNum].uniqueId+"\","+
         "document.getElementById(\"username\").value,"+
         "document.getElementById(\"email\").value,"+
         "document.getElementById(\"roles\").value,"+
@@ -490,14 +523,14 @@ class BasicUserService{
     loadUser()
     {
         var path = window.location.href.replace(window.location.search, "");
-        if(self.data.length>0)
+        if(this.data.length>0)
         {
-            path += "?uniqueId="+self.data[self.currentUser].uniqueId;
+            path += "?uniqueId="+this.data[this.currentUser].uniqueId;
             var ahref = document.createElement("a");
             ahref.setAttribute("href",path);
             var header = document.createElement("b");
             header.appendChild(
-                    document.createTextNode(self.data[self.currentUser].username)
+                    document.createTextNode(this.data[this.currentUser].username)
                     );
             ahref.appendChild(header);
             document.getElementById("user_resultUser").innerHTML="";    
@@ -508,13 +541,13 @@ class BasicUserService{
             var holder = document.createElement("div");
             holder.setAttribute("class", "email");
             holder.setAttribute("id", "email");
-            holder.appendChild(document.createTextNode("Email: "+self.data[self.currentUser].email));
+            holder.appendChild(document.createTextNode("Email: "+this.data[this.currentUser].email));
             document.getElementById("user_result").appendChild(holder);
             
             var holder = document.createElement("div");
             holder.setAttribute("class", "roles");
             holder.setAttribute("id", "roles");
-            holder.appendChild(document.createTextNode("Roles: "+self.data[self.currentUser].roles));
+            holder.appendChild(document.createTextNode("Roles: "+this.data[this.currentUser].roles));
             document.getElementById("user_result").appendChild(holder);
             
             holder = document.createElement("div");
@@ -541,7 +574,16 @@ class BasicUserService{
     }
     initialize(knownGuid="")
     {
-        var guid = self.getPathVariable("uniqueId");
+///////////////////////////////////////////
+        if(this.getCookie("hash")&&this.getCookie("user")){
+        }
+        else{
+            this.setCookie("hash", document.getElementById("h").value, 1);
+            this.setCookie("user", document.getElementById("u").value);
+        }
+        this.user = JSON.parse(document.getElementById("u").value);
+///////////////////////////////////////////
+        var guid = this.getPathVariable("uniqueId");
         if(knownGuid!="")
         {
             guid=knownGuid;
@@ -549,25 +591,26 @@ class BasicUserService{
         var unset = true;
         if(document.getElementById("d")!=null)
         {
-            self.data = JSON.parse(document.getElementById("d").value);
+            this.data = JSON.parse(document.getElementById("d").value);
         }
-        for(var i=0;i<self.data.length;i++)
+        for(var i=0;i<this.data.length;i++)
         {
-            if(self.data[i].uniqueId===guid)
+            if(this.data[i].uniqueId===guid)
             {
-                self.currentUser=i;
+                this.currentUser=i;
                 unset=false;
             }
         }
-        if(unset && self.data.length>0)
+        if(unset && this.data.length>0)
         {
-            self.currentUser=0;
+            this.currentUser=0;
         }
         var collection = document.createElement("ul");
         var item ={};
         document.getElementById("user_userListView").innerHTML="";
-        if(self.user!=null)
+        if(document.getElementById("u")!=null)
         {
+            // document.getElementById("user_result").innerHTML="";
             var input = document.createElement("button");
             input.setAttribute("id", "userSignout");
             input.setAttribute("class", "userSignoutButton");
@@ -575,7 +618,7 @@ class BasicUserService{
             input.appendChild(document.createTextNode("Sign out"));
             document.getElementById("user_userListView").appendChild(input);
         }
-        if(self.user!=null)
+        if(this.admin && document.getElementById("u")!=null)
         {
             var input = document.createElement("button");
             input.setAttribute("id", "userCreateButton");
@@ -584,17 +627,17 @@ class BasicUserService{
             input.appendChild(document.createTextNode("Create New User"));
             document.getElementById("user_userListView").appendChild(input);
         }
-        for(i=0;i<self.data.length;i++)
+        for(i=0;i<this.data.length;i++)
         {
             item = document.createElement("li");
             item.setAttribute("class", "userListViewEntry")
             item.setAttribute("id", "userListViewEntry")
             var link=document.createElement("a");
             link.setAttribute("onclick", "bus.changeUser("+i+")");
-            link.appendChild(document.createTextNode("Username: "+self.data[i].username));
+            link.appendChild(document.createTextNode("Username: "+this.data[i].username));
             item.appendChild(link);
 
-            if(self.admin || (self.user!=null && self.user.id==self.data[i].id))
+            if(this.admin || (this.user!=null && this.user.id==this.data[i].id))
             {
                 var submenu = document.createElement("ul");
                 
@@ -616,15 +659,25 @@ class BasicUserService{
                 deleteLink.appendChild(deleteItem);
                 submenu.appendChild(deleteLink);
 
+                var clearCacheItem = document.createElement("li");
+                clearCacheItem.setAttribute("class", "userModify")
+                clearCacheItem.setAttribute("id", "userModify")
+                var clearCacheLink=document.createElement("a");
+                clearCacheLink.setAttribute("onclick", "bus.clearCache("+i+")");
+                clearCacheItem.appendChild(document.createTextNode("Clear Hash"));
+                clearCacheLink.appendChild(clearCacheItem);
+                submenu.appendChild(clearCacheLink);
+
                 item.appendChild(submenu);
             }
             collection.appendChild(item);
         }
         document.getElementById("user_userListView").appendChild(collection);
-        self.loadUser();
-        if(!self.skip){
-            self.dropdown()
-            self.skip=true;
+        this.loadUser();
+        // JSON result in `data` variable
+        if(!this.skip){
+            this.dropdown()
+            this.skip=true;
         }
     }
 }

@@ -2,7 +2,6 @@
  This is just a scratch list of test queries on the database 
 */
 use pythonbase;
-use javabase;
 /*
 User Auth queries
 */
@@ -41,5 +40,8 @@ select id, uniqueId, username, email, roles, password from User where username="
 
 SELECT MD5('testing');
 
+select * from User where id not in (select id from Role where name<>'');
+
+select * from User;
 
 
