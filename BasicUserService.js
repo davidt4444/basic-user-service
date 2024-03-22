@@ -4,6 +4,7 @@ class BasicUserService{
     data = [];
     server = "";
     user = null;
+    hash = null;
     skip=true;
     static self = this;
     constructor(data, server, admin=false)
@@ -15,6 +16,7 @@ class BasicUserService{
         self.server = server;
         if(self.getCookie("hash")&&self.getCookie("user")){
             self.user = JSON.parse(self.getCookie("user"));
+            self.hash = self.getCookie("hash");
 //            self.cookiePresent();
             self.loadData();
         }
@@ -91,7 +93,7 @@ class BasicUserService{
             var delId = this.data[userNum].id;
             var guid = this.data[userNum].uniqueId;
             $.ajax({
-                url: this.server+'/User/clearCache',
+                url: this.server+'/User/clearCache'+"/"+self.hash,
                 xhrFields: { withCredentials: true },
                 type: 'POST',
                 data: JSON.stringify(payload),
@@ -120,7 +122,7 @@ class BasicUserService{
         if(userNum<self.data.length && userNum>=0)
         {
             $.ajax({
-                url: self.server+'/User/'+self.data[userNum].id,
+                url: self.server+'/User/'+self.data[userNum].id+"/"+self.hash,
                 xhrFields: { withCredentials: true },
                 type: 'DELETE',
                 contentType: 'application/merge-patch+json',
@@ -147,9 +149,8 @@ class BasicUserService{
             password:enteredPassword,
             roles:enteredRoles
         }
-        console.log(payload);
         $.ajax({
-            url: self.server+'/User',
+            url: self.server+'/User'+"/"+self.hash,
             xhrFields: { withCredentials: true },
             type: 'PATCH',
             data: JSON.stringify(payload),
@@ -221,7 +222,7 @@ class BasicUserService{
     loadData()
     {
         $.ajax({
-            url:self.server+'/User',
+            url:self.server+'/User'+"/"+self.hash,
             xhrFields: { withCredentials: true },
             type: 'GET',
             contentType: 'application/merge-patch+json',
@@ -265,6 +266,7 @@ class BasicUserService{
             if(self.getCookie("hash")&&self.getCookie("user")){
             }
             else if (self.user!=null){
+                self.hash = self.user.cookie
                 self.setCookie("hash", self.user.cookie, 1);
                 self.setCookie("user", JSON.stringify(self.user),1);
             }
@@ -286,8 +288,9 @@ class BasicUserService{
     }
     signout(){
         self.user = null;
+        self.hash = null;
         $.ajax({
-            url: self.server+'/auth/signout',
+            url: self.server+'/auth/signout'+"/"+self.hash,
             xhrFields: { withCredentials: true },
             type: 'POST',
             contentType: 'application/merge-patch+json',
