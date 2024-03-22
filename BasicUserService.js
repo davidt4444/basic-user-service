@@ -85,29 +85,38 @@ class BasicUserService{
     }
 
     clearCache(userNum){
-        var payload = {
-            user: this.data[userNum],
-            secureUser:{
-            "hash": document.getElementById("h").value,
-            "user": JSON.parse(document.getElementById("u").value)
-            }
-        }
+        var payload = this.data[userNum];
         if(userNum<this.data.length && userNum>=0)
         {
             var delId = this.data[userNum].id;
             var guid = this.data[userNum].uniqueId;
             $.ajax({
-                url: this.server+'/user/clearCache',
+                url: this.server+'/User/clearCache',
+                xhrFields: { withCredentials: true },
                 type: 'POST',
                 data: JSON.stringify(payload),
                 // processData: false,
                 contentType: 'application/merge-patch+json',
-                success: this.loadData_response
+                success: this.clearCache_response
             });
         }
 
     }
-    deleteUser(userNum){
+    clearCache_response(result)
+    {
+        if(result.response == "Could not authenticate"){
+            self.signout();
+        }else if(result!=null){
+            if(result.uniqueId == self.data[self.currentUser].uniqueId)
+            {
+                self.signout();
+            } 
+            else{
+                self.loadData();
+            }
+        }
+    }
+   deleteUser(userNum){
         if(userNum<self.data.length && userNum>=0)
         {
             $.ajax({
@@ -615,6 +624,15 @@ class BasicUserService{
                 deleteItem.appendChild(document.createTextNode("Delete"));
                 deleteLink.appendChild(deleteItem);
                 submenu.appendChild(deleteLink);
+
+                var clearCacheItem = document.createElement("li");
+                clearCacheItem.setAttribute("class", "userModify")
+                clearCacheItem.setAttribute("id", "userModify")
+                var clearCacheLink=document.createElement("a");
+                clearCacheLink.setAttribute("onclick", "bus.clearCache("+i+")");
+                clearCacheItem.appendChild(document.createTextNode("Clear Hash"));
+                clearCacheLink.appendChild(clearCacheItem);
+                submenu.appendChild(clearCacheLink);
 
                 item.appendChild(submenu);
             }

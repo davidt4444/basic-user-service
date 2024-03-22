@@ -402,7 +402,7 @@ def clearUserHashByUniqueId(user: User, request: Request,user_agent: Annotated[U
         if "ADMIN" in secureUser.roles.upper() or user.id==secureUser.id:
             clearHash(0, user.uniqueId)
             value = "Hash for user {val} has been cleared".format(val=user.uniqueId)
-            return { "response":value }
+            return user
     return {"response":"Could not authenticate"}
 
 
